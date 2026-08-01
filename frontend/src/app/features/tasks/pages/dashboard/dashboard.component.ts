@@ -41,33 +41,60 @@ export class DashboardComponent implements OnInit {
     private readonly router: Router,
   ) {}
 
-  get currentEmail(): string { return this.auth.currentUser()?.email ?? ''; }
-  isOverdue(task: Task): boolean { return isTaskOverdue(task, this.today); }
+  get currentEmail(): string {
+    return this.auth.currentUser()?.email ?? '';
+  }
+  isOverdue(task: Task): boolean {
+    return isTaskOverdue(task, this.today);
+  }
 
-  ngOnInit(): void { this.load(); }
-  applyFilters(): void { this.load(); }
-  clearFilters(): void { this.filters.reset({ status: '', priority: '', category: '' }); this.load(); }
+  ngOnInit(): void {
+    this.load();
+  }
+  applyFilters(): void {
+    this.load();
+  }
+  clearFilters(): void {
+    this.filters.reset({ status: '', priority: '', category: '' });
+    this.load();
+  }
 
   load(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.tasksApi.list(this.activeFilters()).pipe(finalize(() => (this.loading = false))).subscribe({
-      next: (tasks) => { this.tasks = tasks; this.summary = calculateTaskSummary(tasks, this.today); },
-      error: (error: HttpErrorResponse) => { this.errorMessage = this.errorText(error, 'Không thể tải danh sách công việc'); },
-    });
+    this.tasksApi
+      .list(this.activeFilters())
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (tasks) => {
+          this.tasks = tasks;
+          this.summary = calculateTaskSummary(tasks, this.today);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage = this.errorText(error, 'Không thể tải danh sách công việc');
+        },
+      });
   }
 
   deleteTask(id: number): void {
     if (!window.confirm('Xóa công việc này?')) return;
     this.deletingId = id;
     this.errorMessage = '';
-    this.tasksApi.delete(id).pipe(finalize(() => (this.deletingId = null))).subscribe({
-      next: () => this.load(),
-      error: (error: HttpErrorResponse) => { this.errorMessage = this.errorText(error, 'Không thể xóa công việc'); },
-    });
+    this.tasksApi
+      .delete(id)
+      .pipe(finalize(() => (this.deletingId = null)))
+      .subscribe({
+        next: () => this.load(),
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage = this.errorText(error, 'Không thể xóa công việc');
+        },
+      });
   }
 
-  logout(): void { this.auth.logout(); void this.router.navigate(['/login']); }
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigate(['/login']);
+  }
 
   private activeFilters(): TaskFilters {
     const value = this.filters.getRawValue();

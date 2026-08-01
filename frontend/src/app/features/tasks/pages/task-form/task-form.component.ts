@@ -17,11 +17,26 @@ import { TaskService } from '../../task.service';
 })
 export class TaskFormComponent implements OnInit {
   readonly form = new FormGroup({
-    title: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
-    description: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(500)] }),
-    status: new FormControl<TaskStatus>('TODO', { nonNullable: true, validators: [Validators.required] }),
-    priority: new FormControl<TaskPriority>('MEDIUM', { nonNullable: true, validators: [Validators.required] }),
-    category: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(50)] }),
+    title: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
+    description: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(500)],
+    }),
+    status: new FormControl<TaskStatus>('TODO', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    priority: new FormControl<TaskPriority>('MEDIUM', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    category: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(50)],
+    }),
     dueDate: new FormControl('', { nonNullable: true }),
   });
 
@@ -38,7 +53,9 @@ export class TaskFormComponent implements OnInit {
     private readonly router: Router,
   ) {}
 
-  get editMode(): boolean { return this.taskId !== null; }
+  get editMode(): boolean {
+    return this.taskId !== null;
+  }
 
   ngOnInit(): void {
     const routeId = this.route.snapshot.paramMap.get('id');
@@ -69,7 +86,10 @@ export class TaskFormComponent implements OnInit {
     this.submitting = true;
     this.errorMessage = '';
     this.fieldErrors = {};
-    const request = this.taskId === null ? this.tasksApi.create(payload) : this.tasksApi.update(this.taskId, payload);
+    const request =
+      this.taskId === null
+        ? this.tasksApi.create(payload)
+        : this.tasksApi.update(this.taskId, payload);
     request.pipe(finalize(() => (this.submitting = false))).subscribe({
       next: () => void this.router.navigate(['/dashboard']),
       error: (error: HttpErrorResponse) => this.captureError(error, 'Không thể lưu công việc'),
@@ -79,22 +99,27 @@ export class TaskFormComponent implements OnInit {
   private loadTask(id: number): void {
     this.loading = true;
     this.errorMessage = '';
-    this.tasksApi.getById(id).pipe(finalize(() => (this.loading = false))).subscribe({
-      next: (task) => this.form.setValue({
-        title: task.title,
-        description: task.description ?? '',
-        status: task.status,
-        priority: task.priority,
-        category: task.category,
-        dueDate: task.dueDate ?? '',
-      }),
-      error: (error: HttpErrorResponse) => this.captureError(error, 'Không thể tải công việc'),
-    });
+    this.tasksApi
+      .getById(id)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (task) =>
+          this.form.setValue({
+            title: task.title,
+            description: task.description ?? '',
+            status: task.status,
+            priority: task.priority,
+            category: task.category,
+            dueDate: task.dueDate ?? '',
+          }),
+        error: (error: HttpErrorResponse) => this.captureError(error, 'Không thể tải công việc'),
+      });
   }
 
   private captureError(error: HttpErrorResponse, fallback: string): void {
     const apiError = error.error as Partial<ApiError> | null;
     this.errorMessage = typeof apiError?.message === 'string' ? apiError.message : fallback;
-    this.fieldErrors = apiError?.fieldErrors && typeof apiError.fieldErrors === 'object' ? apiError.fieldErrors : {};
+    this.fieldErrors =
+      apiError?.fieldErrors && typeof apiError.fieldErrors === 'object' ? apiError.fieldErrors : {};
   }
 }

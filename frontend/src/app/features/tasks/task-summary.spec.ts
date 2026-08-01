@@ -38,7 +38,9 @@ describe('task summary', () => {
   it('considers only unfinished tasks with a date before today overdue', () => {
     expect(isTaskOverdue(task({ dueDate: '2026-07-30' }), '2026-07-31')).toBe(true);
     expect(isTaskOverdue(task({ dueDate: '2026-07-31' }), '2026-07-31')).toBe(false);
-    expect(isTaskOverdue(task({ status: 'DONE', dueDate: '2026-07-30' }), '2026-07-31')).toBe(false);
+    expect(isTaskOverdue(task({ status: 'DONE', dueDate: '2026-07-30' }), '2026-07-31')).toBe(
+      false,
+    );
     expect(isTaskOverdue(task({ dueDate: null }), '2026-07-31')).toBe(false);
   });
 });

@@ -1,10 +1,61 @@
-<main class="detail-page"><section class="detail-card" [attr.aria-busy]="loading"><a class="back-link" routerLink="/dashboard">← Quay lại danh sách</a>
-  @if (loading) { <p class="state" role="status">Đang tải chi tiết công việc...</p> }
-  @else if (errorMessage) { <div class="state error" role="alert"><p>{{ errorMessage }}</p><button type="button" (click)="load()">Thử lại</button></div> }
-  @else if (task; as item) {
-    <div class="heading"><div><p class="eyebrow">Chi tiết công việc</p><h1>{{ item.title }}</h1></div><a class="edit-link" [routerLink]="['/tasks', item.id, 'edit']">Sửa</a></div>
-    @if (overdue) { <p class="overdue" role="status">Công việc đã quá hạn</p> }
-    <div class="badges"><span class="badge">{{ item.status === 'TODO' ? 'Cần làm' : item.status === 'IN_PROGRESS' ? 'Đang làm' : 'Hoàn thành' }}</span><span class="badge">Ưu tiên {{ item.priority === 'LOW' ? 'thấp' : item.priority === 'HIGH' ? 'cao' : 'trung bình' }}</span></div>
-    <dl><div><dt>Danh mục</dt><dd>{{ item.category }}</dd></div><div><dt>Mô tả</dt><dd>{{ item.description || 'Chưa có mô tả' }}</dd></div><div><dt>Hạn hoàn thành</dt><dd>{{ item.dueDate ? (item.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</dd></div><div><dt>Ngày tạo</dt><dd>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi' }}</dd></div><div><dt>Cập nhật lần cuối</dt><dd>{{ item.updatedAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi' }}</dd></div></dl>
-  }
-</section></main>
+<main class="detail-page">
+  <section class="detail-card" [attr.aria-busy]="loading">
+    <a class="back-link" routerLink="/dashboard">← Quay lại danh sách</a>
+    @if (loading) {
+      <p class="state" role="status">Đang tải chi tiết công việc...</p>
+    } @else if (errorMessage) {
+      <div class="state error" role="alert">
+        <p>{{ errorMessage }}</p>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+    } @else if (task; as item) {
+      <div class="heading">
+        <div>
+          <p class="eyebrow">Chi tiết công việc</p>
+          <h1>{{ item.title }}</h1>
+        </div>
+        <a class="edit-link" [routerLink]="['/tasks', item.id, 'edit']">Sửa</a>
+      </div>
+      @if (overdue) {
+        <p class="overdue" role="status">Công việc đã quá hạn</p>
+      }
+      <div class="badges">
+        <span class="badge">{{
+          item.status === 'TODO'
+            ? 'Cần làm'
+            : item.status === 'IN_PROGRESS'
+              ? 'Đang làm'
+              : 'Hoàn thành'
+        }}</span
+        ><span class="badge"
+          >Ưu tiên
+          {{
+            item.priority === 'LOW' ? 'thấp' : item.priority === 'HIGH' ? 'cao' : 'trung bình'
+          }}</span
+        >
+      </div>
+      <dl>
+        <div>
+          <dt>Danh mục</dt>
+          <dd>{{ item.category }}</dd>
+        </div>
+        <div>
+          <dt>Mô tả</dt>
+          <dd>{{ item.description || 'Chưa có mô tả' }}</dd>
+        </div>
+        <div>
+          <dt>Hạn hoàn thành</dt>
+          <dd>{{ item.dueDate ? (item.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</dd>
+        </div>
+        <div>
+          <dt>Ngày tạo</dt>
+          <dd>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi' }}</dd>
+        </div>
+        <div>
+          <dt>Cập nhật lần cuối</dt>
+          <dd>{{ item.updatedAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi' }}</dd>
+        </div>
+      </dl>
+    }
+  </section>
+</main>

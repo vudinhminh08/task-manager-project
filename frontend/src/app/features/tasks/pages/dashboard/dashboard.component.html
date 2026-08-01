@@ -1,30 +1,176 @@
 <main class="page-shell">
-  <header class="topbar"><div><p class="eyebrow">Task Manager</p><h1>Danh sách công việc</h1><p class="user-email">{{ currentEmail }}</p></div><button type="button" class="secondary" (click)="logout()">Đăng xuất</button></header>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Task Manager</p>
+      <h1>Danh sách công việc</h1>
+      <p class="user-email">{{ currentEmail }}</p>
+    </div>
+    <button type="button" class="secondary" (click)="logout()">Đăng xuất</button>
+  </header>
   <section class="summary-grid" aria-label="Tổng hợp công việc">
-    <article class="summary-card"><span>Tổng số</span><strong>{{ summary.total }}</strong></article>
-    <article class="summary-card"><span>Cần làm</span><strong>{{ summary.todo }}</strong></article>
-    <article class="summary-card"><span>Đang làm</span><strong>{{ summary.inProgress }}</strong></article>
-    <article class="summary-card"><span>Hoàn thành</span><strong>{{ summary.done }}</strong></article>
+    <article class="summary-card">
+      <span>Tổng số</span><strong>{{ summary.total }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Cần làm</span><strong>{{ summary.todo }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Đang làm</span><strong>{{ summary.inProgress }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Hoàn thành</span><strong>{{ summary.done }}</strong>
+    </article>
     @if (summary.overdue > 0) {
-      <article class="summary-card overdue-card"><span>Quá hạn</span><strong>{{ summary.overdue }}</strong></article>
+      <article class="summary-card overdue-card">
+        <span>Quá hạn</span><strong>{{ summary.overdue }}</strong>
+      </article>
     }
   </section>
   <section class="panel filters-panel" aria-labelledby="filter-title">
-    <div class="section-heading"><div><p class="eyebrow">Bộ lọc</p><h2 id="filter-title">Tìm công việc</h2></div><a class="primary-link" routerLink="/tasks/new">Tạo công việc</a></div>
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Bộ lọc</p>
+        <h2 id="filter-title">Tìm công việc</h2>
+      </div>
+      <a class="primary-link" routerLink="/tasks/new">Tạo công việc</a>
+    </div>
     <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="filter-grid">
-      <div class="field"><label for="filter-status">Trạng thái</label><select id="filter-status" formControlName="status"><option value="">Tất cả</option><option value="TODO">Cần làm</option><option value="IN_PROGRESS">Đang làm</option><option value="DONE">Hoàn thành</option></select></div>
-      <div class="field"><label for="filter-priority">Ưu tiên</label><select id="filter-priority" formControlName="priority"><option value="">Tất cả</option><option value="LOW">Thấp</option><option value="MEDIUM">Trung bình</option><option value="HIGH">Cao</option></select></div>
-      <div class="field"><label for="filter-category">Danh mục</label><input id="filter-category" formControlName="category" placeholder="Ví dụ: Công việc" /></div>
-      <div class="filter-actions"><button type="submit">Áp dụng</button><button type="button" class="secondary" (click)="clearFilters()">Xóa lọc</button></div>
+      <div class="field">
+        <label for="filter-status">Trạng thái</label
+        ><select id="filter-status" formControlName="status">
+          <option value="">Tất cả</option>
+          <option value="TODO">Cần làm</option>
+          <option value="IN_PROGRESS">Đang làm</option>
+          <option value="DONE">Hoàn thành</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-priority">Ưu tiên</label
+        ><select id="filter-priority" formControlName="priority">
+          <option value="">Tất cả</option>
+          <option value="LOW">Thấp</option>
+          <option value="MEDIUM">Trung bình</option>
+          <option value="HIGH">Cao</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-category">Danh mục</label
+        ><input id="filter-category" formControlName="category" placeholder="Ví dụ: Công việc" />
+      </div>
+      <div class="filter-actions">
+        <button type="submit">Áp dụng</button
+        ><button type="button" class="secondary" (click)="clearFilters()">Xóa lọc</button>
+      </div>
     </form>
   </section>
-  <section class="panel" aria-labelledby="task-title"><div class="section-heading"><h2 id="task-title">Công việc</h2><span>{{ tasks.length }} mục</span></div>
-    @if (loading) { <p class="state" role="status">Đang tải công việc...</p> }
-    @else if (errorMessage) { <div class="state error" role="alert"><p>{{ errorMessage }}</p><button type="button" (click)="load()">Thử lại</button></div> }
-    @else if (tasks.length === 0) { <div class="state"><p>Chưa có công việc phù hợp.</p><a routerLink="/tasks/new">Tạo công việc đầu tiên</a></div> }
-    @else {
-      <div class="desktop-table"><table><thead><tr><th>Tiêu đề</th><th>Trạng thái</th><th>Ưu tiên</th><th>Danh mục</th><th>Hạn</th><th><span class="sr-only">Thao tác</span></th></tr></thead><tbody>@for (task of tasks; track task.id) {<tr><td><a [routerLink]="['/tasks', task.id]">{{ task.title }}</a>@if (isOverdue(task)) { <span class="overdue-label">Quá hạn</span> }</td><td><span class="badge">{{ task.status === 'TODO' ? 'Cần làm' : task.status === 'IN_PROGRESS' ? 'Đang làm' : 'Hoàn thành' }}</span></td><td>{{ task.priority === 'LOW' ? 'Thấp' : task.priority === 'HIGH' ? 'Cao' : 'Trung bình' }}</td><td>{{ task.category }}</td><td>{{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</td><td class="actions"><a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a><button type="button" class="danger-link" [disabled]="deletingId === task.id" (click)="deleteTask(task.id)">Xóa</button></td></tr>}</tbody></table></div>
-      <div class="mobile-list">@for (task of tasks; track task.id) {<article class="task-card"><div class="card-heading"><a [routerLink]="['/tasks', task.id]"><h3>{{ task.title }}</h3></a><span class="badge">{{ task.status === 'TODO' ? 'Cần làm' : task.status === 'IN_PROGRESS' ? 'Đang làm' : 'Hoàn thành' }}</span></div><p>{{ task.description || 'Chưa có mô tả' }}</p><p>{{ task.category }} · {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</p><div class="actions"><a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a><button type="button" class="danger-link" [disabled]="deletingId === task.id" (click)="deleteTask(task.id)">Xóa</button></div></article>}</div>
+  <section class="panel" aria-labelledby="task-title">
+    <div class="section-heading">
+      <h2 id="task-title">Công việc</h2>
+      <span>{{ tasks.length }} mục</span>
+    </div>
+    @if (loading) {
+      <p class="state" role="status">Đang tải công việc...</p>
+    } @else if (errorMessage) {
+      <div class="state error" role="alert">
+        <p>{{ errorMessage }}</p>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+    } @else if (tasks.length === 0) {
+      <div class="state">
+        <p>Chưa có công việc phù hợp.</p>
+        <a routerLink="/tasks/new">Tạo công việc đầu tiên</a>
+      </div>
+    } @else {
+      <div class="desktop-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Tiêu đề</th>
+              <th>Trạng thái</th>
+              <th>Ưu tiên</th>
+              <th>Danh mục</th>
+              <th>Hạn</th>
+              <th><span class="sr-only">Thao tác</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (task of tasks; track task.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
+                  @if (isOverdue(task)) {
+                    <span class="overdue-label">Quá hạn</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge">{{
+                    task.status === 'TODO'
+                      ? 'Cần làm'
+                      : task.status === 'IN_PROGRESS'
+                        ? 'Đang làm'
+                        : 'Hoàn thành'
+                  }}</span>
+                </td>
+                <td>
+                  {{
+                    task.priority === 'LOW'
+                      ? 'Thấp'
+                      : task.priority === 'HIGH'
+                        ? 'Cao'
+                        : 'Trung bình'
+                  }}
+                </td>
+                <td>{{ task.category }}</td>
+                <td>{{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</td>
+                <td class="actions">
+                  <a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a
+                  ><button
+                    type="button"
+                    class="danger-link"
+                    [disabled]="deletingId === task.id"
+                    (click)="deleteTask(task.id)"
+                  >
+                    Xóa
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="mobile-list">
+        @for (task of tasks; track task.id) {
+          <article class="task-card">
+            <div class="card-heading">
+              <a [routerLink]="['/tasks', task.id]"
+                ><h3>{{ task.title }}</h3></a
+              ><span class="badge">{{
+                task.status === 'TODO'
+                  ? 'Cần làm'
+                  : task.status === 'IN_PROGRESS'
+                    ? 'Đang làm'
+                    : 'Hoàn thành'
+              }}</span>
+            </div>
+            <p>{{ task.description || 'Chưa có mô tả' }}</p>
+            <p>
+              {{ task.category }} ·
+              {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
+            </p>
+            <div class="actions">
+              <a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a
+              ><button
+                type="button"
+                class="danger-link"
+                [disabled]="deletingId === task.id"
+                (click)="deleteTask(task.id)"
+              >
+                Xóa
+              </button>
+            </div>
+          </article>
+        }
+      </div>
     }
   </section>
 </main>

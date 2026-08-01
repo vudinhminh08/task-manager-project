@@ -66,7 +66,12 @@ describe('TaskFormComponent', () => {
     component.form.controls.description.setValue('');
     component.submit();
     expect(service.create).toHaveBeenCalledWith({
-      title: 'Chuẩn bị bài', description: null, status: 'TODO', priority: 'MEDIUM', category: 'Công việc', dueDate: null,
+      title: 'Chuẩn bị bài',
+      description: null,
+      status: 'TODO',
+      priority: 'MEDIUM',
+      category: 'Công việc',
+      dueDate: null,
     });
     expect(navigate).toHaveBeenCalledWith(['/dashboard']);
   });
@@ -74,12 +79,28 @@ describe('TaskFormComponent', () => {
   it('loads edit data and captures backend field errors', () => {
     routeId = '18';
     service.getById.mockReturnValue(of(existing));
-    service.update.mockReturnValue(throwError(() => new HttpErrorResponse({
-      status: 400, error: { message: 'Dữ liệu không hợp lệ', fieldErrors: { title: 'Tiêu đề đã tồn tại' } },
-    })));
+    service.update.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: {
+              message: 'Dữ liệu không hợp lệ',
+              fieldErrors: { title: 'Tiêu đề đã tồn tại' },
+            },
+          }),
+      ),
+    );
     const component = TestBed.createComponent(TaskFormComponent).componentInstance;
     component.ngOnInit();
-    expect(component.form.getRawValue()).toEqual({ title: existing.title, description: '', status: existing.status, priority: existing.priority, category: existing.category, dueDate: existing.dueDate });
+    expect(component.form.getRawValue()).toEqual({
+      title: existing.title,
+      description: '',
+      status: existing.status,
+      priority: existing.priority,
+      category: existing.category,
+      dueDate: existing.dueDate,
+    });
     component.submit();
     expect(component.errorMessage).toBe('Dữ liệu không hợp lệ');
     expect(component.fieldErrors['title']).toBe('Tiêu đề đã tồn tại');
