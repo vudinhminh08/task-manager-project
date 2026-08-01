@@ -160,7 +160,7 @@ check '  status replaced' DONE "$(json_string status "$update_a_body")"
 echo '== filters =='
 filter_status=$(status_and_rows '/tasks?status=IN_PROGRESS' "$TOKEN_A")
 check 'status filter' '200:1' "$filter_status"
-filter_priority=$(status_and_rows '/tasks?priority=HIGH' "$TOKEN_A")
+filter_priority=$(status_and_rows '/tasks?priority=MEDIUM' "$TOKEN_A")
 check 'priority filter' '200:1' "$filter_priority"
 filter_category=$(status_and_rows '/tasks?category=home' "$TOKEN_A")
 check 'case-insensitive category filter' '200:1' "$filter_category"
