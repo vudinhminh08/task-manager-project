@@ -10,13 +10,13 @@
       <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-describedby]="errorMessage ? 'task-form-error' : null">
         <div class="field">
           <label for="title">Tiêu đề</label>
-          <input id="title" formControlName="title" maxlength="120" required [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid" [attr.aria-describedby]="fieldErrors['title'] || (form.controls.title.touched && form.controls.title.invalid) ? 'title-error' : null" />
+          <input id="title" formControlName="title" maxlength="120" required [attr.aria-invalid]="(form.controls.title.touched && form.controls.title.invalid) || !!fieldErrors['title']" [attr.aria-describedby]="fieldErrors['title'] || (form.controls.title.touched && form.controls.title.invalid) ? 'title-error' : null" />
           @if (fieldErrors['title']) { <small id="title-error" class="field-error">{{ fieldErrors['title'] }}</small> }
           @else if (form.controls.title.touched && form.controls.title.invalid) { <small id="title-error" class="field-error">Tiêu đề bắt buộc, tối đa 120 ký tự.</small> }
         </div>
         <div class="field">
           <label for="description">Mô tả</label>
-          <textarea id="description" rows="4" maxlength="500" formControlName="description" [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid" [attr.aria-describedby]="fieldErrors['description'] || (form.controls.description.touched && form.controls.description.invalid) ? 'description-error' : null"></textarea>
+          <textarea id="description" rows="4" maxlength="500" formControlName="description" [attr.aria-invalid]="(form.controls.description.touched && form.controls.description.invalid) || !!fieldErrors['description']" [attr.aria-describedby]="fieldErrors['description'] || (form.controls.description.touched && form.controls.description.invalid) ? 'description-error' : null"></textarea>
           @if (fieldErrors['description']) { <small id="description-error" class="field-error">{{ fieldErrors['description'] }}</small> }
         </div>
         <div class="field-grid">
@@ -32,7 +32,7 @@
         <div class="field-grid">
           <div class="field">
             <label for="category">Danh mục</label>
-            <input id="category" formControlName="category" maxlength="50" required [attr.aria-invalid]="form.controls.category.touched && form.controls.category.invalid" [attr.aria-describedby]="fieldErrors['category'] || (form.controls.category.touched && form.controls.category.invalid) ? 'category-error' : null" />
+            <input id="category" formControlName="category" maxlength="50" required [attr.aria-invalid]="(form.controls.category.touched && form.controls.category.invalid) || !!fieldErrors['category']" [attr.aria-describedby]="fieldErrors['category'] || (form.controls.category.touched && form.controls.category.invalid) ? 'category-error' : null" />
             @if (fieldErrors['category']) { <small id="category-error" class="field-error">{{ fieldErrors['category'] }}</small> }
             @else if (form.controls.category.touched && form.controls.category.invalid) { <small id="category-error" class="field-error">Danh mục bắt buộc, tối đa 50 ký tự.</small> }
           </div>
