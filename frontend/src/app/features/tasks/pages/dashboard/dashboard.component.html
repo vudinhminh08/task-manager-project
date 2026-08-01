@@ -1,31 +1,71 @@
 <main class="page-shell">
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">Task Manager</p>
-      <h1>Danh sách công việc</h1>
-      <p class="user-email">{{ currentEmail }}</p>
-    </div>
-    <button type="button" class="secondary" (click)="logout()">Đăng xuất</button>
-  </header>
-  <section class="summary-grid" aria-label="Tổng hợp công việc">
-    <article class="summary-card">
-      <span>Tổng số</span><strong>{{ summary.total }}</strong>
+  <!-- Dashboard metrics live on /statistics. -->
+  <!--
+    <article class="summary-card summary-card--total">
+      <div class="summary-card-header">
+        <span>Tổng số</span>
+        <div class="summary-icon-badge summary-icon--total" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+        </div>
+      </div>
+      <strong>{{ summary.total }}</strong>
     </article>
-    <article class="summary-card">
-      <span>Cần làm</span><strong>{{ summary.todo }}</strong>
+    <article class="summary-card summary-card--todo">
+      <div class="summary-card-header">
+        <span>Cần làm</span>
+        <div class="summary-icon-badge summary-icon--todo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v4l3 3" />
+          </svg>
+        </div>
+      </div>
+      <strong>{{ summary.todo }}</strong>
     </article>
-    <article class="summary-card">
-      <span>Đang làm</span><strong>{{ summary.inProgress }}</strong>
+    <article class="summary-card summary-card--progress">
+      <div class="summary-card-header">
+        <span>Đang làm</span>
+        <div class="summary-icon-badge summary-icon--progress" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+      </div>
+      <strong>{{ summary.inProgress }}</strong>
     </article>
-    <article class="summary-card">
-      <span>Hoàn thành</span><strong>{{ summary.done }}</strong>
+    <article class="summary-card summary-card--done">
+      <div class="summary-card-header">
+        <span>Hoàn thành</span>
+        <div class="summary-icon-badge summary-icon--done" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <path d="M22 4L12 14.01l-3-3" />
+          </svg>
+        </div>
+      </div>
+      <strong>{{ summary.done }}</strong>
     </article>
     @if (summary.overdue > 0) {
-      <article class="summary-card overdue-card">
-        <span>Quá hạn</span><strong>{{ summary.overdue }}</strong>
+      <article class="summary-card summary-card--overdue">
+        <div class="summary-card-header">
+          <span>Quá hạn</span>
+          <div class="summary-icon-badge summary-icon--overdue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        </div>
+        <strong>{{ summary.overdue }}</strong>
       </article>
     }
-  </section>
+  -->
+
   <section class="panel filters-panel" aria-labelledby="filter-title">
     <div class="section-heading">
       <div>
@@ -74,24 +114,98 @@
       </div>
     </form>
   </section>
+
+  <section class="panel pinned-panel" aria-labelledby="pinned-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Ghim nhanh</p>
+        <h2 id="pinned-title">Công việc quan trọng</h2>
+      </div>
+      <span>{{ pinnedTasks.length }} mục</span>
+    </div>
+    @if (pinnedTasks.length === 0) {
+      <p class="pinned-empty">
+        Chưa có công việc được ghim. Hãy ghim công việc quan trọng để truy cập nhanh.
+      </p>
+    } @else {
+      <div class="pinned-grid">
+        @for (task of pinnedTasks; track task.id) {
+          <a class="pinned-card" [routerLink]="['/tasks', task.id]">
+            <span class="pin-mark" aria-hidden="true">★</span>
+            <strong>{{ task.title }}</strong>
+            <span class="pinned-meta">
+              {{
+                task.status === 'TODO'
+                  ? 'Cần làm'
+                  : task.status === 'IN_PROGRESS'
+                    ? 'Đang làm'
+                    : 'Hoàn thành'
+              }}
+              ·
+              {{
+                task.priority === 'LOW' ? 'Thấp' : task.priority === 'HIGH' ? 'Cao' : 'Trung bình'
+              }}
+            </span>
+            <span class="pinned-due">{{
+              task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn'
+            }}</span>
+          </a>
+        }
+      </div>
+    }
+  </section>
+
   <section class="panel" aria-labelledby="task-title">
     <div class="section-heading">
       <h2 id="task-title">Công việc</h2>
       <span>{{ tasks.length }} mục</span>
     </div>
+
+    <!-- Fix #13: Spinner loading state -->
     @if (loading) {
-      <p class="state" role="status">Đang tải công việc...</p>
+      <div class="loading-state">
+        <div class="spinner" role="status">
+          <span class="sr-only">Đang tải công việc...</span>
+        </div>
+        <p>Đang tải công việc...</p>
+      </div>
     } @else if (errorMessage) {
-      <div class="state error" role="alert">
+      <div class="error-state" role="alert">
+        <svg
+          class="empty-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
+        </svg>
         <p>{{ errorMessage }}</p>
-        <button type="button" (click)="load()">Thử lại</button>
+        <button type="button" class="action-btn action-btn--primary" (click)="load()">
+          Thử lại
+        </button>
       </div>
     } @else if (tasks.length === 0) {
-      <div class="state">
+      <!-- Fix #12: Designed empty state -->
+      <div class="empty-state">
+        <svg
+          class="empty-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="3" />
+          <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
         <p>Chưa có công việc phù hợp.</p>
-        <a routerLink="/tasks/new">Tạo công việc đầu tiên</a>
+        <a class="primary-link" routerLink="/tasks/new">Tạo công việc đầu tiên</a>
       </div>
     } @else {
+      <!-- ===== Desktop Table ===== -->
       <div class="desktop-table">
         <table>
           <thead>
@@ -99,63 +213,112 @@
               <th>Tiêu đề</th>
               <th>Trạng thái</th>
               <th>Ưu tiên</th>
-              <th>Danh mục</th>
               <th>Hạn</th>
-              <th><span class="sr-only">Thao tác</span></th>
+              <th class="actions-column"><span class="sr-only">Thao tác</span></th>
             </tr>
           </thead>
           <tbody>
-            @for (task of tasks; track task.id) {
-              <tr>
+            @for (task of pagedTasks; track task.id) {
+              <!-- Fix #5: DONE tasks are dimmed -->
+              <tr [class.task-done]="task.status === 'DONE'">
                 <td>
-                  <a [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
-                  @if (isOverdue(task)) {
-                    <span class="overdue-label">Quá hạn</span>
-                  }
+                  <div class="task-title-cell">
+                    <a class="task-title" [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
+                    <div class="task-meta">
+                      <span>{{ task.category }}</span>
+                      @if (isOverdue(task)) {
+                        <span class="overdue-label">Quá hạn</span>
+                      }
+                    </div>
+                  </div>
                 </td>
                 <td>
-                  <span class="badge">{{
-                    task.status === 'TODO'
-                      ? 'Cần làm'
-                      : task.status === 'IN_PROGRESS'
-                        ? 'Đang làm'
-                        : 'Hoàn thành'
-                  }}</span>
+                  <div class="status-cell">
+                    <span class="sr-only" [id]="'status-label-' + task.id"
+                      >Trạng thái {{ task.title }}</span
+                    >
+                    <select
+                      [attr.aria-labelledby]="'status-label-' + task.id"
+                      [value]="task.status"
+                      [disabled]="statusUpdatingId === task.id"
+                      (change)="updateStatus(task, $event)"
+                    >
+                      <option value="TODO">Cần làm</option>
+                      <option value="IN_PROGRESS">Đang làm</option>
+                      <option value="DONE">Hoàn thành</option>
+                    </select>
+                  </div>
                 </td>
                 <td>
-                  {{
+                  <!-- Fix #4: visual weight per priority -->
+                  <span [class]="'priority priority-' + priorityClass(task.priority)">{{
                     task.priority === 'LOW'
                       ? 'Thấp'
                       : task.priority === 'HIGH'
                         ? 'Cao'
                         : 'Trung bình'
-                  }}
+                  }}</span>
                 </td>
-                <td>{{ task.category }}</td>
-                <td>{{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}</td>
-                <td class="actions">
-                  <a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a
-                  ><button
-                    type="button"
-                    class="danger-link"
-                    [disabled]="deletingId === task.id"
-                    (click)="deleteTask(task.id)"
-                  >
-                    Xóa
-                  </button>
+                <td class="task-due-cell">
+                  {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
+                </td>
+                <td class="actions-cell">
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="pin-button"
+                      [class.pin-button--active]="task.pinned"
+                      [attr.aria-label]="
+                        task.pinned ? 'Bỏ ghim ' + task.title : 'Ghim ' + task.title
+                      "
+                      [attr.title]="task.pinned ? 'Bỏ ghim' : 'Ghim'"
+                      [disabled]="pinUpdatingId === task.id"
+                      (click)="togglePin(task)"
+                    >
+                      {{ task.pinned ? '★' : '☆' }}
+                    </button>
+                    <details class="task-menu">
+                      <summary
+                        class="task-menu-trigger"
+                        title="Thao tác khác"
+                        aria-label="Thao tác khác"
+                      >
+                        <span aria-hidden="true">⋮</span>
+                      </summary>
+                      <div class="task-menu-panel">
+                        <a class="task-menu-item" [routerLink]="['/tasks', task.id, 'edit']">
+                          <span aria-hidden="true">✎</span> Sửa
+                        </a>
+                        <button type="button" class="task-menu-item" (click)="duplicateTask(task)">
+                          <span aria-hidden="true">▣</span> Nhân bản
+                        </button>
+                        <button
+                          type="button"
+                          class="task-menu-item task-menu-item--danger"
+                          [disabled]="deletingId === task.id"
+                          (click)="deleteTask(task.id)"
+                        >
+                          <span aria-hidden="true">⌫</span> Xóa
+                        </button>
+                      </div>
+                    </details>
+                  </div>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+
+      <!-- ===== Mobile Cards (Fix #2: shows priority + overdue) ===== -->
       <div class="mobile-list">
-        @for (task of tasks; track task.id) {
-          <article class="task-card">
+        @for (task of pagedTasks; track task.id) {
+          <article class="task-card" [class.task-done]="task.status === 'DONE'">
             <div class="card-heading">
               <a [routerLink]="['/tasks', task.id]"
                 ><h3>{{ task.title }}</h3></a
-              ><span class="badge">{{
+              >
+              <span [class]="'badge badge-' + statusClass(task.status)">{{
                 task.status === 'TODO'
                   ? 'Cần làm'
                   : task.status === 'IN_PROGRESS'
@@ -163,25 +326,103 @@
                     : 'Hoàn thành'
               }}</span>
             </div>
-            <p>{{ task.description || 'Chưa có mô tả' }}</p>
-            <p>
+            <!-- Fix #2: mobile now shows priority + overdue -->
+            <div class="card-meta">
+              <span [class]="'priority priority-' + priorityClass(task.priority)">{{
+                task.priority === 'LOW' ? 'Thấp' : task.priority === 'HIGH' ? 'Cao' : 'Trung bình'
+              }}</span>
+              @if (isOverdue(task)) {
+                <span class="overdue-label">Quá hạn</span>
+              }
+            </div>
+            <label class="mobile-status">
+              <span>Trạng thái:</span>
+              <div class="mobile-status-shell">
+                <select
+                  [value]="task.status"
+                  [disabled]="statusUpdatingId === task.id"
+                  (change)="updateStatus(task, $event)"
+                >
+                  <option value="TODO">Cần làm</option>
+                  <option value="IN_PROGRESS">Đang làm</option>
+                  <option value="DONE">Hoàn thành</option>
+                </select>
+              </div>
+            </label>
+            <p class="card-description">{{ task.description || 'Chưa có mô tả' }}</p>
+            <p class="card-footer">
               {{ task.category }} ·
               {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
             </p>
-            <div class="actions">
-              <a [routerLink]="['/tasks', task.id, 'edit']">Sửa</a
-              ><button
+            <div class="card-actions">
+              <button
                 type="button"
-                class="danger-link"
-                [disabled]="deletingId === task.id"
-                (click)="deleteTask(task.id)"
+                class="pin-button"
+                [class.pin-button--active]="task.pinned"
+                [attr.aria-label]="task.pinned ? 'Bỏ ghim ' + task.title : 'Ghim ' + task.title"
+                [attr.title]="task.pinned ? 'Bỏ ghim' : 'Ghim'"
+                [disabled]="pinUpdatingId === task.id"
+                (click)="togglePin(task)"
               >
-                Xóa
+                {{ task.pinned ? '★' : '☆' }}
               </button>
+              <details class="task-menu">
+                <summary class="task-menu-trigger" title="Thao tác khác" aria-label="Thao tác khác">
+                  <span aria-hidden="true">⋮</span>
+                </summary>
+                <div class="task-menu-panel">
+                  <a class="task-menu-item" [routerLink]="['/tasks', task.id, 'edit']">
+                    <span aria-hidden="true">✎</span> Sửa
+                  </a>
+                  <button type="button" class="task-menu-item" (click)="duplicateTask(task)">
+                    <span aria-hidden="true">▣</span> Nhân bản
+                  </button>
+                  <button
+                    type="button"
+                    class="task-menu-item task-menu-item--danger"
+                    [disabled]="deletingId === task.id"
+                    (click)="deleteTask(task.id)"
+                  >
+                    <span aria-hidden="true">⌫</span> Xóa
+                  </button>
+                </div>
+              </details>
             </div>
           </article>
         }
       </div>
+
+      @if (showPagination) {
+        <nav class="pagination" aria-label="Phân trang công việc">
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)"
+          >
+            Trước
+          </button>
+          @for (page of pageNumbers; track page) {
+            <button
+              type="button"
+              class="pagination-button"
+              [class.pagination-button--active]="page === currentPage"
+              [attr.aria-current]="page === currentPage ? 'page' : null"
+              (click)="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)"
+          >
+            Sau
+          </button>
+        </nav>
+      }
     }
   </section>
 </main>

@@ -9,6 +9,7 @@ export interface Task {
   priority: TaskPriority;
   category: string;
   dueDate: string | null;
+  pinned: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,4 +27,12 @@ export interface TaskFilters {
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;
+}
+
+export interface TaskStatusPayload {
+  status: TaskStatus;
+}
+
+export interface TaskPinPayload {
+  pinned: boolean;
 }

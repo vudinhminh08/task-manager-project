@@ -36,7 +36,7 @@ public class AuthService {
         User user;
         try {
             user = userRepository.saveAndFlush(
-                    new User(email, passwordEncoder.encode(request.password())));
+                    new User(email, passwordEncoder.encode(request.password()), request.fullName(), request.phone()));
         } catch (DataIntegrityViolationException exception) {
             throw new EmailAlreadyExistsException();
         }
@@ -54,12 +54,33 @@ public class AuthService {
         return responseFor(user);
     }
 
+    @Transactional(readOnly = true)
+    public UserResponse profile(Long userId) {
+        return toUserResponse(findUser(userId));
+    }
+
+    @Transactional
+    public UserResponse updateProfile(Long userId, ProfileUpdateRequest request) {
+        User user = findUser(userId);
+        user.updateFullName(request.fullName());
+        return toUserResponse(userRepository.save(user));
+    }
+
     private AuthResponse responseFor(User user) {
         return new AuthResponse(
                 jwtService.createToken(user.getId()),
                 "Bearer",
                 jwtService.expirationSeconds(),
-                new UserResponse(user.getId(), user.getEmail()));
+                toUserResponse(user));
+    }
+
+    private UserResponse toUserResponse(User user) {
+        return new UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getPhone());
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(InvalidCredentialsException::new);
     }
 
     private String normalizeEmail(String email) {

@@ -1,0 +1,192 @@
+<main class="statistics-page">
+  <section class="statistics-shell" [attr.aria-busy]="loading">
+    <header class="statistics-heading">
+      <div class="heading-title-group">
+        <div class="heading-icon-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">Task Manager</p>
+          <h1>Thống kê công việc</h1>
+          <p class="heading-subtitle">Nhìn nhanh phân bố & chỉ số trạng thái công việc của bạn.</p>
+        </div>
+      </div>
+    </header>
+
+    @if (loading) {
+      <div class="loading-state">
+        <div class="spinner" role="status">
+          <span class="sr-only">Đang tải số liệu...</span>
+        </div>
+        <p>Đang tải số liệu...</p>
+      </div>
+    } @else if (errorMessage) {
+      <div class="error-state" role="alert">
+        <svg
+          class="error-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
+        </svg>
+        <p>{{ errorMessage }}</p>
+        <button type="button" class="action-btn action-btn--primary" (click)="load()">
+          Thử lại
+        </button>
+      </div>
+    } @else {
+      <!-- 4 Metric Cards -->
+      <section class="metric-grid" aria-label="Bốn chỉ số công việc">
+        @for (metric of metrics; track metric.key) {
+          <article [class]="'metric-card metric-card--' + metric.key.toLowerCase()">
+            <div class="metric-card-header">
+              <span class="metric-label">{{ metric.label }}</span>
+              <div
+                [class]="'metric-icon-badge metric-icon--' + metric.key.toLowerCase()"
+                aria-hidden="true"
+              >
+                @if (metric.key === 'TODO') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4l3 3" />
+                  </svg>
+                } @else if (metric.key === 'IN_PROGRESS') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                } @else if (metric.key === 'DONE') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <path d="M22 4L12 14.01l-3-3" />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                }
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <strong class="metric-count">{{ metric.count }}</strong>
+              <span class="metric-subtext">công việc</span>
+            </div>
+          </article>
+        }
+      </section>
+
+      <!-- Pure CSS Bar Chart Panel -->
+      <section class="chart-panel" aria-labelledby="chart-title">
+        <div class="chart-panel-header">
+          <div>
+            <h2 id="chart-title">Phân bố công việc</h2>
+            <p class="chart-subtitle">So sánh số lượng công việc theo trạng thái</p>
+          </div>
+          <span class="chart-badge">Biểu đồ cột</span>
+        </div>
+
+        <div class="bar-chart" role="img" aria-label="Biểu đồ ba trạng thái công việc">
+          @for (metric of statusMetrics; track metric.key) {
+            <div class="bar-column">
+              <div class="bar-value-container">
+                <span class="bar-value">{{ metric.count }}</span>
+                <span class="bar-percentage">{{ metric.percentage }}%</span>
+              </div>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [class]="'bar-fill bar-fill--' + metric.key.toLowerCase()"
+                  [style.height.%]="barHeight(metric)"
+                  [attr.aria-label]="
+                    metric.label + ': ' + metric.count + ' (' + metric.percentage + '%)'
+                  "
+                ></div>
+              </div>
+              <div class="bar-label-group">
+                <span class="bar-label">{{ metric.label }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Overdue Tasks Panel (Compact & Clean) -->
+      <section class="overdue-panel" aria-labelledby="overdue-title">
+        <div class="overdue-panel-header">
+          <div>
+            <h2 id="overdue-title">Công việc quá hạn</h2>
+            <p class="overdue-subtitle">Các công việc đã qua hạn hoàn thành</p>
+          </div>
+          <span class="overdue-count">{{ overdueTasks.length }} mục</span>
+        </div>
+
+        @if (overdueTasks.length === 0) {
+          <div class="overdue-empty" role="status">
+            <p>Không có công việc nào bị quá hạn.</p>
+          </div>
+        } @else {
+          <div class="overdue-list" role="list">
+            @for (task of overdueTasks; track task.id) {
+              <article class="overdue-item" role="listitem">
+                <div class="overdue-item-main">
+                  <a class="overdue-title" [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
+                  <div class="overdue-item-tags">
+                    <span class="overdue-category">{{ task.category }}</span>
+                    <time class="overdue-due" [attr.datetime]="task.dueDate">
+                      Hạn: {{ task.dueDate | date: 'dd/MM/yyyy' }}
+                    </time>
+                  </div>
+                </div>
+
+                <div class="overdue-item-meta">
+                  <span [class]="'priority priority-' + priorityClass(task.priority)">
+                    {{ priorityLabel(task.priority) }}
+                  </span>
+
+                  <div class="select-shell overdue-select-shell">
+                    <label class="sr-only" [attr.for]="'overdue-status-' + task.id">
+                      Cập nhật trạng thái {{ task.title }}
+                    </label>
+                    <select
+                      class="overdue-status-select"
+                      [id]="'overdue-status-' + task.id"
+                      [value]="task.status"
+                      [disabled]="statusUpdatingId === task.id"
+                      (change)="updateStatus(task, $event)"
+                    >
+                      <option value="TODO">Cần làm</option>
+                      <option value="IN_PROGRESS">Đang làm</option>
+                      <option value="DONE">Hoàn thành</option>
+                    </select>
+                  </div>
+
+                  <div class="overdue-actions">
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/tasks', task.id]"
+                      [attr.aria-label]="'Mở chi tiết ' + task.title"
+                      >Chi tiết</a
+                    >
+                    <a
+                      class="action-btn"
+                      [routerLink]="['/tasks', task.id, 'edit']"
+                      [attr.aria-label]="'Sửa ' + task.title"
+                      >Sửa</a
+                    >
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+  </section>
+</main>

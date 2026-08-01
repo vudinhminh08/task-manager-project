@@ -8,44 +8,48 @@
       (ngSubmit)="submit()"
       [attr.aria-describedby]="errorMessage ? 'login-form-error' : null"
     >
-      <label for="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        formControlName="email"
-        autocomplete="email"
-        required
-        maxlength="254"
-        [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
-        [attr.aria-describedby]="
-          form.controls.email.touched && form.controls.email.invalid ? 'login-email-error' : null
-        "
-      />
-      @if (form.controls.email.touched && form.controls.email.invalid) {
-        <small id="login-email-error" class="field-error">Nhập email hợp lệ.</small>
-      }
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          required
+          maxlength="254"
+          [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
+          [attr.aria-describedby]="
+            form.controls.email.touched && form.controls.email.invalid ? 'login-email-error' : null
+          "
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <small id="login-email-error" class="field-error">Nhập email hợp lệ.</small>
+        }
+      </div>
 
-      <label for="password">Mật khẩu</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        autocomplete="current-password"
-        required
-        minlength="8"
-        maxlength="72"
-        [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
-        [attr.aria-describedby]="
-          form.controls.password.touched && form.controls.password.invalid
-            ? 'login-password-error'
-            : null
-        "
-      />
-      @if (form.controls.password.touched && form.controls.password.invalid) {
-        <small id="login-password-error" class="field-error">
-          Mật khẩu phải có từ 8 đến 72 ký tự.
-        </small>
-      }
+      <div class="field">
+        <label for="password">Mật khẩu</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          required
+          minlength="8"
+          maxlength="72"
+          [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
+          [attr.aria-describedby]="
+            form.controls.password.touched && form.controls.password.invalid
+              ? 'login-password-error'
+              : null
+          "
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small id="login-password-error" class="field-error">
+            Mật khẩu phải có từ 8 đến 72 ký tự.
+          </small>
+        }
+      </div>
 
       @if (errorMessage) {
         <p id="login-form-error" class="form-error" role="alert">{{ errorMessage }}</p>

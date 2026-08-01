@@ -6,7 +6,17 @@ import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
         @NotBlank @Email @Size(max = 254) String email,
-        @NotBlank @Size(min = 8) @Utf8ByteLength(max = 72) String password) {
+        @NotBlank @Size(min = 8) @Utf8ByteLength(max = 72) String password,
+        @Size(max = 100) String fullName,
+        @Size(max = 30) String phone) {
+
+    public RegisterRequest(String email, String password) {
+        this(email, password, null, null);
+    }
+
+    public RegisterRequest(String email, String password, String phone) {
+        this(email, password, null, phone);
+    }
 
     /**
      * Trims the email here so validation sees the same value the service will
@@ -15,6 +25,8 @@ public record RegisterRequest(
      */
     public RegisterRequest {
         email = email == null ? null : email.trim();
+        fullName = fullName == null || fullName.isBlank() ? "" : fullName.trim();
+        phone = phone == null || phone.isBlank() ? null : phone.trim();
     }
 
     @Override

@@ -49,6 +49,9 @@ public class Task {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column(nullable = false)
+    private boolean pinned = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -87,6 +90,16 @@ public class Task {
         this.updatedAt = Instant.now();
     }
 
+    public void updateStatus(TaskStatus status) {
+        this.status = status;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updatePinned(boolean pinned) {
+        this.pinned = pinned;
+        this.updatedAt = Instant.now();
+    }
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
@@ -102,6 +115,7 @@ public class Task {
     public TaskPriority getPriority() { return priority; }
     public String getCategory() { return category; }
     public LocalDate getDueDate() { return dueDate; }
+    public boolean isPinned() { return pinned; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

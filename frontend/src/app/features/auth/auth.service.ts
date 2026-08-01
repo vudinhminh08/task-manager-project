@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthRequest, AuthResponse, AuthUser } from './auth.models';
+import { AuthRequest, AuthResponse, AuthUser, ProfilePayload } from './auth.models';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -37,8 +37,12 @@ function isAuthResponse(value: unknown): value is AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'task-manager.auth';
+  private readonly userSubject = new BehaviorSubject<AuthUser | null>(null);
+  readonly user$ = this.userSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    this.userSubject.next(this.read()?.user ?? null);
+  }
 
   register(request: AuthRequest): Observable<AuthResponse> {
     return this.http
@@ -54,6 +58,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.storageKey);
+    this.userSubject.next(null);
   }
 
   token(): string | null {
@@ -68,8 +73,24 @@ export class AuthService {
     return this.token() !== null;
   }
 
+  getProfile(): Observable<AuthUser> {
+    return this.http.get<AuthUser>(`${environment.apiBaseUrl}/users/me`);
+  }
+
+  updateProfile(payload: ProfilePayload): Observable<AuthUser> {
+    return this.http
+      .patch<AuthUser>(`${environment.apiBaseUrl}/users/me`, payload)
+      .pipe(tap((user) => this.persistUser(user)));
+  }
+
   private save(response: AuthResponse): void {
     localStorage.setItem(this.storageKey, JSON.stringify(response));
+    this.userSubject.next(response.user);
+  }
+
+  private persistUser(user: AuthUser): void {
+    const response = this.read();
+    if (response) this.save({ ...response, user });
   }
 
   private read(): AuthResponse | null {

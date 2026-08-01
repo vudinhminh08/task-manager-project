@@ -58,10 +58,12 @@ describe('RegisterComponent', () => {
   });
 
   it('requires a valid email and a password from 8 to 72 characters', () => {
-    component.form.setValue({ email: '', password: 'short' });
+    component.form.setValue({ fullName: '', phone: '', email: '', password: 'short' });
     expect(component.form.invalid).toBe(true);
 
     component.form.setValue({
+      fullName: '',
+      phone: '',
       email: 'new@example.com',
       password: 'Demo@2026',
     });
@@ -83,6 +85,8 @@ describe('RegisterComponent', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     authService.register.mockReturnValue(of(authResponse));
     component.form.setValue({
+      fullName: '',
+      phone: '',
       email: 'new@example.com',
       password: 'Demo@2026',
     });
@@ -110,6 +114,8 @@ describe('RegisterComponent', () => {
       ),
     );
     component.form.setValue({
+      fullName: '',
+      phone: '',
       email: 'existing@example.com',
       password: 'Demo@2026',
     });
@@ -136,6 +142,8 @@ describe('RegisterComponent', () => {
     const fixture = TestBed.createComponent(RegisterComponent);
     const renderedComponent = fixture.componentInstance;
     renderedComponent.form.setValue({
+      fullName: '',
+      phone: '',
       email: 'blocked@example.com',
       password: 'Demo@2026',
     });
@@ -158,6 +166,8 @@ describe('RegisterComponent', () => {
     const request = new Subject<AuthResponse>();
     authService.register.mockReturnValue(request);
     component.form.setValue({
+      fullName: '',
+      phone: '',
       email: 'new@example.com',
       password: 'Demo@2026',
     });

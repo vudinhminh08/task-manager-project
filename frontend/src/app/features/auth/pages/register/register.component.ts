@@ -16,6 +16,8 @@ import { AuthService } from '../../auth.service';
 })
 export class RegisterComponent {
   readonly form = new FormGroup({
+    fullName: new FormControl('', { nonNullable: true }),
+    phone: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(30)] }),
     email: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.email, Validators.maxLength(254)],
@@ -41,12 +43,20 @@ export class RegisterComponent {
       return;
     }
 
+    const rawValue = this.form.getRawValue();
+    const request = {
+      email: rawValue.email.trim(),
+      password: rawValue.password,
+      ...(rawValue.fullName.trim() ? { fullName: rawValue.fullName.trim() } : {}),
+      ...(rawValue.phone.trim() ? { phone: rawValue.phone.trim() } : {}),
+    };
+
     this.submitting = true;
     this.errorMessage = '';
     this.fieldErrors = {};
 
     this.auth
-      .register(this.form.getRawValue())
+      .register(request)
       .pipe(finalize(() => (this.submitting = false)))
       .subscribe({
         next: () => void this.router.navigate(['/dashboard']),

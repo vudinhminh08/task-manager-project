@@ -1,58 +1,75 @@
 :host {
   display: block;
-  color: #172033;
+  color: var(--color-text);
 }
 .form-page {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: clamp(1.25rem, 4vw, 3rem) 1rem;
-  background: #f4f7fb;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(var(--space-5), 4vw, var(--space-12)) var(--space-4);
+  background: var(--color-bg);
 }
 .form-card {
   width: min(100%, 720px);
-  margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 2.25rem);
   box-sizing: border-box;
-  border-radius: 16px;
-  border: 1px solid #e5eaf2;
-  background: #fff;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
+  padding: clamp(var(--space-6), 4vw, var(--space-10));
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
 }
 .back-link,
 .secondary-link {
-  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-primary);
   font-weight: 600;
+  text-decoration: none;
+}
+.back-link:hover,
+.secondary-link:hover {
+  color: var(--color-primary-hover);
+}
+.back-link:focus-visible,
+.secondary-link:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 28%);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 .eyebrow {
-  margin: 1.5rem 0 0.35rem;
-  color: #526079;
+  margin: var(--space-6) 0 var(--space-1);
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 h1 {
-  margin: 0 0 1.5rem;
+  margin: 0 0 var(--space-6);
 }
 form {
   display: grid;
-  gap: 1.15rem;
+  gap: var(--space-4);
 }
 .field,
 .field-grid {
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-2);
 }
 .field-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: start;
 }
 label {
   font-weight: 600;
+  font-size: 0.875rem;
 }
 label span {
-  color: #526079;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   font-weight: 400;
 }
@@ -61,17 +78,17 @@ select,
 textarea,
 button {
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font: inherit;
 }
 input,
 select,
 textarea {
   width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid #a9b3c3;
-  color: inherit;
-  background: #fff;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  background: var(--color-surface);
 }
 .select-shell {
   position: relative;
@@ -87,8 +104,8 @@ textarea {
   right: 0.9rem;
   width: 0.55rem;
   height: 0.55rem;
-  border-right: 2px solid #526079;
-  border-bottom: 2px solid #526079;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
   content: '';
   pointer-events: none;
   transform: translateY(-65%) rotate(45deg);
@@ -100,6 +117,7 @@ button {
 }
 textarea {
   resize: vertical;
+  min-height: 100px;
 }
 input:focus-visible,
 select:focus-visible,
@@ -108,34 +126,50 @@ a:focus-visible,
 button:focus-visible {
   outline: 3px solid rgb(37 99 235 / 28%);
   outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+.char-counter {
+  display: block;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+.char-counter.near-limit {
+  color: var(--color-overdue);
 }
 .field-error,
 .form-error {
   margin: 0;
-  color: #b42318;
+  color: var(--color-danger);
+  font-size: 0.85rem;
 }
 .form-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
 }
 button {
-  padding: 0.65rem 1rem;
+  padding: var(--space-2) var(--space-4);
   border: 0;
-  color: #fff;
-  background: #2563eb;
+  color: var(--color-surface);
+  background: var(--color-primary);
   font-weight: 700;
   cursor: pointer;
+}
+button:hover {
+  background: var(--color-primary-hover);
 }
 button:disabled {
   opacity: 0.65;
   cursor: wait;
 }
+
 @media (max-width: 560px) {
   .form-card {
-    padding: 1.25rem;
+    padding: var(--space-5);
   }
   .field-grid {
     grid-template-columns: 1fr;

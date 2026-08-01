@@ -25,6 +25,12 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(nullable = false, length = 100)
+    private String fullName = "";
+
+    @Column(length = 30)
+    private String phone;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -35,8 +41,14 @@ public class User {
     }
 
     public User(String email, String passwordHash) {
+        this(email, passwordHash, "", null);
+    }
+
+    public User(String email, String passwordHash, String fullName, String phone) {
         this.email = email;
         this.passwordHash = passwordHash;
+        this.fullName = fullName == null ? "" : fullName.trim();
+        this.phone = phone == null || phone.isBlank() ? null : phone.trim();
     }
 
     @PrePersist
@@ -61,6 +73,18 @@ public class User {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void updateFullName(String fullName) {
+        this.fullName = fullName == null ? "" : fullName.trim();
     }
 
     public Instant getCreatedAt() {

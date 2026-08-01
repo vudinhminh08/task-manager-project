@@ -9,6 +9,66 @@ import { TASK_CATEGORIES } from '../../task-categories';
 import { TaskPayload, TaskPriority, TaskStatus } from '../../task.models';
 import { TaskService } from '../../task.service';
 
+type CloneCandidate = Partial<Record<keyof TaskPayload, unknown>>;
+
+function isTaskStatus(value: unknown): value is TaskStatus {
+  return value === 'TODO' || value === 'IN_PROGRESS' || value === 'DONE';
+}
+
+function isTaskPriority(value: unknown): value is TaskPriority {
+  return value === 'LOW' || value === 'MEDIUM' || value === 'HIGH';
+}
+
+function isValidDueDate(value: unknown): value is string | null {
+  if (value === null) return true;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function parseCloneCandidate(value: unknown): TaskPayload | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as CloneCandidate;
+  const title = candidate.title;
+  const description = candidate.description;
+  const category = candidate.category;
+  const status = candidate.status;
+  const priority = candidate.priority;
+  const dueDate = candidate.dueDate;
+  if (
+    typeof title !== 'string' ||
+    title.trim().length === 0 ||
+    title.trim().length > 120 ||
+    !(description === null || typeof description === 'string') ||
+    (typeof description === 'string' && description.length > 500) ||
+    typeof category !== 'string' ||
+    category.trim().length === 0 ||
+    category.trim().length > 50 ||
+    !isTaskStatus(status) ||
+    !isTaskPriority(priority) ||
+    !isValidDueDate(dueDate)
+  ) {
+    return null;
+  }
+  return {
+    title: title.trim(),
+    description: typeof description === 'string' ? description : null,
+    status,
+    priority,
+    category: category.trim(),
+    dueDate,
+  };
+}
+
+function parseCloneJson(raw: string | null): TaskPayload | null {
+  if (!raw) return null;
+  try {
+    return parseCloneCandidate(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
 @Component({
   selector: 'app-task-form',
   standalone: true,
@@ -70,6 +130,7 @@ export class TaskFormComponent implements OnInit {
     }
     this.taskId = routeId !== null ? id : null;
     if (this.taskId !== null) this.loadTask(this.taskId);
+    else this.applyCloneDraft();
   }
 
   submit(): void {
@@ -117,6 +178,25 @@ export class TaskFormComponent implements OnInit {
           }),
         error: (error: HttpErrorResponse) => this.captureError(error, 'Không thể tải công việc'),
       });
+  }
+
+  private applyCloneDraft(): void {
+    const queryValue = this.route.snapshot.queryParamMap?.get('clone') ?? null;
+    const draft = queryValue
+      ? parseCloneJson(queryValue)
+      : parseCloneCandidate(
+          this.router.getCurrentNavigation()?.extras.state?.['clone'] ??
+            (typeof history !== 'undefined' ? history.state?.clone : null),
+        );
+    if (!draft) return;
+    this.form.setValue({
+      title: draft.title,
+      description: draft.description ?? '',
+      status: draft.status,
+      priority: draft.priority,
+      category: draft.category,
+      dueDate: draft.dueDate ?? '',
+    });
   }
 
   private captureError(error: HttpErrorResponse, fallback: string): void {

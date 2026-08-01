@@ -132,6 +132,39 @@ class AuthServiceTest {
                 .hasMessage("Email hoặc mật khẩu không đúng");
     }
 
+    @Test
+    void registerIncludesOptionalPhoneAndFullNameInUserResponse() {
+        when(userRepository.existsByEmail("demo@example.com")).thenReturn(false);
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            ReflectionTestUtils.setField(user, "id", 8L);
+            return user;
+        });
+        when(jwtService.createToken(8L)).thenReturn("signed-token");
+        when(jwtService.expirationSeconds()).thenReturn(7200L);
+
+        AuthResponse response = authService.register(
+                new RegisterRequest("demo@example.com", "Demo@2026", " Demo User ", " +84901234567 "));
+
+        assertThat(response.user()).isEqualTo(
+                new UserResponse(8L, "demo@example.com", "Demo User", "+84901234567"));
+    }
+
+    @Test
+    void profileCanReadAndUpdateOnlyFullName() {
+        User user = new User("demo@example.com", "hash", "Old Name", "+84901234567");
+        ReflectionTestUtils.setField(user, "id", 42L);
+        when(userRepository.findById(42L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        assertThat(authService.profile(42L)).isEqualTo(
+                new UserResponse(42L, "demo@example.com", "Old Name", "+84901234567"));
+        assertThat(authService.updateProfile(42L, new ProfileUpdateRequest(" New Name ")))
+                .isEqualTo(new UserResponse(42L, "demo@example.com", "New Name", "+84901234567"));
+        assertThat(user.getEmail()).isEqualTo("demo@example.com");
+        assertThat(user.getPhone()).isEqualTo("+84901234567");
+    }
+
     private User user(Long id, String email, String passwordHash) {
         User user = new User(email, passwordHash);
         ReflectionTestUtils.setField(user, "id", id);

@@ -10,6 +10,7 @@ function task(overrides: Partial<Task>): Task {
     priority: 'MEDIUM',
     category: 'Cá nhân',
     dueDate: null,
+    pinned: false,
     createdAt: '2026-07-31T08:00:00Z',
     updatedAt: '2026-07-31T08:00:00Z',
     ...overrides,

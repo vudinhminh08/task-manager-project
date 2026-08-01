@@ -2,7 +2,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Task, TaskFilters, TaskPayload } from './task.models';
+import {
+  Task,
+  TaskFilters,
+  TaskPayload,
+  TaskPinPayload,
+  TaskStatus,
+  TaskStatusPayload,
+} from './task.models';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -28,6 +35,16 @@ export class TaskService {
 
   update(id: number, payload: TaskPayload): Observable<Task> {
     return this.http.put<Task>(`${this.url}/${id}`, payload);
+  }
+
+  updateStatus(id: number, status: TaskStatus): Observable<Task> {
+    const payload: TaskStatusPayload = { status };
+    return this.http.patch<Task>(`${this.url}/${id}/status`, payload);
+  }
+
+  updatePinned(id: number, pinned: boolean): Observable<Task> {
+    const payload: TaskPinPayload = { pinned };
+    return this.http.patch<Task>(`${this.url}/${id}/pin`, payload);
   }
 
   delete(id: number): Observable<void> {

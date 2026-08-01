@@ -8,8 +8,14 @@
     <p class="eyebrow">{{ editMode ? 'Cập nhật' : 'Công việc mới' }}</p>
     <h1 id="task-form-title">{{ editMode ? 'Sửa công việc' : 'Tạo công việc' }}</h1>
 
+    <!-- Fix #13: spinner loading state -->
     @if (loading) {
-      <p role="status">Đang tải công việc...</p>
+      <div class="loading-state">
+        <div class="spinner" role="status">
+          <span class="sr-only">Đang tải công việc...</span>
+        </div>
+        <p>Đang tải công việc...</p>
+      </div>
     } @else {
       <form
         [formGroup]="form"
@@ -32,6 +38,10 @@
                 : null
             "
           />
+          <!-- Fix #14: character counter for title -->
+          <small class="char-counter" [class.near-limit]="form.controls.title.value.length > 100"
+            >{{ form.controls.title.value.length }} / 120</small
+          >
           @if (fieldErrors['title']) {
             <small id="title-error" class="field-error">{{ fieldErrors['title'] }}</small>
           } @else if (form.controls.title.touched && form.controls.title.invalid) {
@@ -39,11 +49,12 @@
           }
         </div>
         <div class="field">
-          <label for="description">Mô tả</label>
+          <label for="description">Mô tả <span>(ghi chú, danh sách cần làm...)</span></label>
           <textarea
             id="description"
-            rows="4"
+            rows="6"
             maxlength="500"
+            placeholder="Nhập mô tả chi tiết hoặc danh sách các ghi chú công việc...&#10;• Công việc 1&#10;• Công việc 2"
             formControlName="description"
             [attr.aria-invalid]="
               (form.controls.description.touched && form.controls.description.invalid) ||
@@ -56,6 +67,12 @@
                 : null
             "
           ></textarea>
+          <!-- Fix #14: character counter for description -->
+          <small
+            class="char-counter"
+            [class.near-limit]="form.controls.description.value.length > 450"
+            >{{ form.controls.description.value.length }} / 500</small
+          >
           @if (fieldErrors['description']) {
             <small id="description-error" class="field-error">{{
               fieldErrors['description']

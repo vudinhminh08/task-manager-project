@@ -14,6 +14,7 @@ const existing: Task = {
   priority: 'HIGH',
   category: 'Công việc',
   dueDate: '2026-08-02',
+  pinned: false,
   createdAt: '2026-07-30T08:00:00Z',
   updatedAt: '2026-07-30T08:00:00Z',
 };
@@ -21,9 +22,11 @@ const existing: Task = {
 describe('TaskFormComponent', () => {
   const service = { getById: vi.fn(), create: vi.fn(), update: vi.fn() };
   let routeId: string | null;
+  let routeClone: string | null;
 
   beforeEach(async () => {
     routeId = null;
+    routeClone = null;
     service.getById.mockReset();
     service.create.mockReset();
     service.update.mockReset();
@@ -31,7 +34,15 @@ describe('TaskFormComponent', () => {
       imports: [TaskFormComponent],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => routeId } } } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: { get: () => routeId },
+              queryParamMap: { get: () => routeClone },
+            },
+          },
+        },
         { provide: TaskService, useValue: service },
       ],
     }).compileComponents();
@@ -128,5 +139,54 @@ describe('TaskFormComponent', () => {
     expect(component.invalidRoute).toBe(true);
     expect(service.getById).not.toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('prefills a valid clone draft without entering edit mode', () => {
+    routeClone = JSON.stringify({
+      title: 'Bản sao - Chuẩn bị bài',
+      description: 'Ghi chú',
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      category: 'Công việc',
+      dueDate: '2026-08-02',
+    });
+    const component = TestBed.createComponent(TaskFormComponent).componentInstance;
+
+    component.ngOnInit();
+
+    expect(component.editMode).toBe(false);
+    expect(component.form.getRawValue()).toEqual({
+      title: 'Bản sao - Chuẩn bị bài',
+      description: 'Ghi chú',
+      status: 'IN_PROGRESS',
+      priority: 'HIGH',
+      category: 'Công việc',
+      dueDate: '2026-08-02',
+    });
+    expect(service.getById).not.toHaveBeenCalled();
+  });
+
+  it('keeps the blank new form when clone data is invalid', () => {
+    routeClone = JSON.stringify({
+      title: 'Bản sao - Thiếu danh mục',
+      description: 'Ghi chú',
+      status: 'BROKEN',
+      priority: 'HIGH',
+      category: '',
+      dueDate: 'not-a-date',
+    });
+    const component = TestBed.createComponent(TaskFormComponent).componentInstance;
+
+    component.ngOnInit();
+
+    expect(component.editMode).toBe(false);
+    expect(component.form.getRawValue()).toEqual({
+      title: '',
+      description: '',
+      status: 'TODO',
+      priority: 'MEDIUM',
+      category: '',
+      dueDate: '',
+    });
   });
 });

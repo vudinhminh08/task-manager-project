@@ -18,6 +18,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -64,5 +65,40 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
     }
 
+    @Test
+    void patchesStatusAndPinForAuthenticatedOwner() throws Exception {
+        when(service.updateStatus(42L, 9L, TaskStatus.DONE)).thenReturn(response());
+        when(service.updatePinned(42L, 9L, true)).thenReturn(responseWithPin());
+
+        mockMvc.perform(patch("/api/tasks/9/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"DONE\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(9));
+        mockMvc.perform(patch("/api/tasks/9/pin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pinned\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pinned").value(true));
+
+        verify(service).updateStatus(42L, 9L, TaskStatus.DONE);
+        verify(service).updatePinned(42L, 9L, true);
+    }
+
+    @Test
+    void rejectsNullPatchValues() throws Exception {
+        mockMvc.perform(patch("/api/tasks/9/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":null}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        mockMvc.perform(patch("/api/tasks/9/pin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pinned\":null}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
     private TaskResponse response() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "Work", LocalDate.now(), null, null); }
+    private TaskResponse responseWithPin() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "Work", LocalDate.now(), true, null, null); }
 }

@@ -162,4 +162,20 @@ describe('AuthService', () => {
     expect(service.token()).toBeNull();
     expect(localStorage.getItem('task-manager.auth')).toBeNull();
   });
+
+  it('loads and updates the current profile while persisting the new user', () => {
+    localStorage.setItem('task-manager.auth', JSON.stringify(storedAuthFixture));
+    service.getProfile().subscribe();
+    const getRequest = http.expectOne('/api/users/me');
+    expect(getRequest.request.method).toBe('GET');
+    getRequest.flush({ id: 1, email: 'demo@example.com', fullName: 'Nguyễn A', phone: null });
+
+    service.updateProfile({ fullName: 'Trần B' }).subscribe();
+    const patchRequest = http.expectOne('/api/users/me');
+    expect(patchRequest.request.method).toBe('PATCH');
+    expect(patchRequest.request.body).toEqual({ fullName: 'Trần B' });
+    patchRequest.flush({ id: 1, email: 'demo@example.com', fullName: 'Trần B', phone: null });
+
+    expect(service.currentUser()?.fullName).toBe('Trần B');
+  });
 });

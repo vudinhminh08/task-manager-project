@@ -1,10 +1,10 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
-import { Task } from '../../task.models';
+import { Task, TaskPriority, TaskStatus } from '../../task.models';
 import { isTaskOverdue } from '../../task-summary';
 import { TaskService } from '../../task.service';
 
@@ -24,17 +24,44 @@ export class TaskDetailComponent implements OnInit {
   task: Task | null = null;
   loading = false;
   errorMessage = '';
+  deleting = false;
   readonly today = localIsoDate();
 
   constructor(
     private readonly tasksApi: TaskService,
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly location: Location,
   ) {}
   get overdue(): boolean {
     return this.task !== null && isTaskOverdue(this.task, this.today);
   }
+
+  statusClass(status: TaskStatus): string {
+    switch (status) {
+      case 'TODO':
+        return 'todo';
+      case 'IN_PROGRESS':
+        return 'progress';
+      case 'DONE':
+        return 'done';
+    }
+  }
+
+  priorityClass(priority: TaskPriority): string {
+    return priority.toLowerCase();
+  }
+
   ngOnInit(): void {
     this.load();
+  }
+
+  goBack(): void {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+    void this.router.navigate(['/dashboard']);
   }
 
   load(): void {
@@ -57,6 +84,24 @@ export class TaskDetailComponent implements OnInit {
             typeof apiError?.message === 'string'
               ? apiError.message
               : 'Không thể tải chi tiết công việc';
+        },
+      });
+  }
+
+  /* Fix #9: delete task from detail page */
+  deleteTask(): void {
+    if (!this.task || !window.confirm('Xóa công việc này?')) return;
+    this.deleting = true;
+    this.errorMessage = '';
+    this.tasksApi
+      .delete(this.task.id)
+      .pipe(finalize(() => (this.deleting = false)))
+      .subscribe({
+        next: () => void this.router.navigate(['/dashboard']),
+        error: (error: HttpErrorResponse) => {
+          const apiError = error.error as Partial<ApiError> | null;
+          this.errorMessage =
+            typeof apiError?.message === 'string' ? apiError.message : 'Không thể xóa công việc';
         },
       });
   }

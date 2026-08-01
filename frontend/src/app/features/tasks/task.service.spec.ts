@@ -13,6 +13,7 @@ const fixture: Task = {
   priority: 'MEDIUM',
   category: 'Cá nhân',
   dueDate: null,
+  pinned: false,
   createdAt: '2026-07-31T08:00:00Z',
   updatedAt: '2026-07-31T08:00:00Z',
 };
@@ -61,6 +62,18 @@ describe('TaskService', () => {
     const update = http.expectOne(`${url}/4`);
     expect(update.request.method).toBe('PUT');
     update.flush(fixture);
+
+    service.updateStatus(4, 'DONE').subscribe();
+    const status = http.expectOne(`${url}/4/status`);
+    expect(status.request.method).toBe('PATCH');
+    expect(status.request.body).toEqual({ status: 'DONE' });
+    status.flush({ ...fixture, status: 'DONE' });
+
+    service.updatePinned(4, true).subscribe();
+    const pin = http.expectOne(`${url}/4/pin`);
+    expect(pin.request.method).toBe('PATCH');
+    expect(pin.request.body).toEqual({ pinned: true });
+    pin.flush({ ...fixture, pinned: true });
 
     service.delete(4).subscribe();
     const remove = http.expectOne(`${url}/4`);

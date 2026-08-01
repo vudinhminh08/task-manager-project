@@ -79,6 +79,31 @@ class TaskServiceTest {
         verify(taskRepository).delete(existing);
     }
 
+    @Test
+    void patchesStatusAndPinOnlyOnOwnedTask() {
+        Task existing = task(7L, user(42L), "Old", "Work");
+        when(taskRepository.findByIdAndUserId(7L, 42L)).thenReturn(Optional.of(existing));
+        when(taskRepository.save(existing)).thenReturn(existing);
+
+        TaskResponse statusResponse = service.updateStatus(42L, 7L, TaskStatus.DONE);
+        TaskResponse pinResponse = service.updatePinned(42L, 7L, true);
+
+        assertThat(statusResponse.status()).isEqualTo(TaskStatus.DONE);
+        assertThat(pinResponse.pinned()).isTrue();
+        assertThat(existing.getTitle()).isEqualTo("Old");
+        assertThat(existing.getCategory()).isEqualTo("Work");
+    }
+
+    @Test
+    void rejectsStatusAndPinPatchesForAnotherUsersTask() {
+        when(taskRepository.findByIdAndUserId(7L, 42L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateStatus(42L, 7L, TaskStatus.DONE))
+                .isInstanceOf(TaskNotFoundException.class);
+        assertThatThrownBy(() -> service.updatePinned(42L, 7L, true))
+                .isInstanceOf(TaskNotFoundException.class);
+    }
+
     private User user(Long id) { User user = new User("owner" + id + "@example.com", "hash"); ReflectionTestUtils.setField(user, "id", id); return user; }
     private Task task(Long id, User user, String title, String category) {
         Task task = new Task(user, title, "Description", TaskStatus.TODO, TaskPriority.HIGH, category, LocalDate.now());

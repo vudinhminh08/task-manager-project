@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { Location } from '@angular/common';
 import { registerLocaleData } from '@angular/common';
 import localeVi from '@angular/common/locales/vi';
 import { TestBed } from '@angular/core/testing';
@@ -16,19 +17,23 @@ const task: Task = {
   priority: 'HIGH',
   category: 'Công việc',
   dueDate: '2026-07-30',
+  pinned: false,
   createdAt: '2026-07-29T08:00:00Z',
   updatedAt: '2026-07-30T08:00:00Z',
 };
 
 describe('TaskDetailComponent', () => {
   const service = { getById: vi.fn() };
+  const location = { back: vi.fn() };
   beforeAll(() => registerLocaleData(localeVi));
   beforeEach(async () => {
     service.getById.mockReset();
+    location.back.mockReset();
     await TestBed.configureTestingModule({
       imports: [TaskDetailComponent],
       providers: [
         provideRouter([]),
+        { provide: Location, useValue: location },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '9' } } } },
         { provide: TaskService, useValue: service },
       ],
@@ -56,5 +61,25 @@ describe('TaskDetailComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.errorMessage).toBe('Không tìm thấy công việc');
     expect(fixture.componentInstance.loading).toBe(false);
+  });
+
+  it('uses a generic back action instead of linking to the task list', () => {
+    service.getById.mockReturnValue(of(task));
+    const fixture = TestBed.createComponent(TaskDetailComponent);
+    fixture.detectChanges();
+
+    const backButton = fixture.nativeElement.querySelector('.back-link') as HTMLButtonElement;
+    expect(backButton.tagName).toBe('BUTTON');
+    expect(backButton.textContent).toContain('Quay lại');
+    expect(backButton.textContent).not.toContain('danh sách');
+
+    const originalHistoryLength = window.history.length;
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 2 });
+    backButton.click();
+    Object.defineProperty(window.history, 'length', {
+      configurable: true,
+      value: originalHistoryLength,
+    });
+    expect(location.back).toHaveBeenCalledTimes(1);
   });
 });

@@ -48,6 +48,20 @@ public class TaskService {
     }
 
     @Transactional
+    public TaskResponse updateStatus(Long userId, Long taskId, TaskStatus status) {
+        Task task = findOwned(taskId, userId);
+        task.updateStatus(status);
+        return toResponse(taskRepository.save(task));
+    }
+
+    @Transactional
+    public TaskResponse updatePinned(Long userId, Long taskId, boolean pinned) {
+        Task task = findOwned(taskId, userId);
+        task.updatePinned(pinned);
+        return toResponse(taskRepository.save(task));
+    }
+
+    @Transactional
     public void delete(Long userId, Long taskId) {
         taskRepository.delete(findOwned(taskId, userId));
     }
@@ -67,6 +81,7 @@ public class TaskService {
 
     private TaskResponse toResponse(Task task) {
         return new TaskResponse(task.getId(), task.getTitle(), task.getDescription(), task.getStatus(),
-                task.getPriority(), task.getCategory(), task.getDueDate(), task.getCreatedAt(), task.getUpdatedAt());
+                task.getPriority(), task.getCategory(), task.getDueDate(), task.isPinned(),
+                task.getCreatedAt(), task.getUpdatedAt());
     }
 }

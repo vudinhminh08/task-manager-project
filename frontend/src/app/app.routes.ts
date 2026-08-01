@@ -23,6 +23,22 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/profile/pages/profile/profile.component').then(
+        (module) => module.ProfileComponent,
+      ),
+  },
+  {
+    path: 'statistics',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/statistics/pages/statistics/statistics.component').then(
+        (module) => module.StatisticsComponent,
+      ),
+  },
+  {
     path: 'tasks/new',
     canActivate: [authGuard],
     loadComponent: () =>

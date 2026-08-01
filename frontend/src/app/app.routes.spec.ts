@@ -7,6 +7,8 @@ describe('application routes', () => {
       'login',
       'register',
       'dashboard',
+      'profile',
+      'statistics',
       'tasks/new',
       'tasks/:id',
       'tasks/:id/edit',
@@ -16,6 +18,8 @@ describe('application routes', () => {
 
     for (const path of [
       'dashboard',
+      'profile',
+      'statistics',
       'tasks/new',
       'tasks/:id',
       'tasks/:id/edit',
