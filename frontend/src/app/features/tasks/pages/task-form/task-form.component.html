@@ -1,0 +1,49 @@
+<main class="form-page">
+  <section class="form-card" [attr.aria-busy]="loading || submitting" aria-labelledby="task-form-title">
+    <a class="back-link" routerLink="/dashboard">← Quay lại danh sách</a>
+    <p class="eyebrow">{{ editMode ? 'Cập nhật' : 'Công việc mới' }}</p>
+    <h1 id="task-form-title">{{ editMode ? 'Sửa công việc' : 'Tạo công việc' }}</h1>
+
+    @if (loading) {
+      <p role="status">Đang tải công việc...</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-describedby]="errorMessage ? 'task-form-error' : null">
+        <div class="field">
+          <label for="title">Tiêu đề</label>
+          <input id="title" formControlName="title" maxlength="120" required [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid" />
+          @if (fieldErrors['title']) { <small class="field-error">{{ fieldErrors['title'] }}</small> }
+          @else if (form.controls.title.touched && form.controls.title.invalid) { <small class="field-error">Tiêu đề bắt buộc, tối đa 120 ký tự.</small> }
+        </div>
+        <div class="field">
+          <label for="description">Mô tả</label>
+          <textarea id="description" rows="4" maxlength="500" formControlName="description"></textarea>
+          @if (fieldErrors['description']) { <small class="field-error">{{ fieldErrors['description'] }}</small> }
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="status">Trạng thái</label>
+            <select id="status" formControlName="status"><option value="TODO">Cần làm</option><option value="IN_PROGRESS">Đang làm</option><option value="DONE">Hoàn thành</option></select>
+          </div>
+          <div class="field">
+            <label for="priority">Độ ưu tiên</label>
+            <select id="priority" formControlName="priority"><option value="LOW">Thấp</option><option value="MEDIUM">Trung bình</option><option value="HIGH">Cao</option></select>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="category">Danh mục</label>
+            <input id="category" formControlName="category" maxlength="50" required [attr.aria-invalid]="form.controls.category.touched && form.controls.category.invalid" />
+            @if (fieldErrors['category']) { <small class="field-error">{{ fieldErrors['category'] }}</small> }
+            @else if (form.controls.category.touched && form.controls.category.invalid) { <small class="field-error">Danh mục bắt buộc, tối đa 50 ký tự.</small> }
+          </div>
+          <div class="field">
+            <label for="due-date">Hạn hoàn thành <span>(không bắt buộc)</span></label>
+            <input id="due-date" type="date" formControlName="dueDate" />
+          </div>
+        </div>
+        @if (errorMessage) { <p id="task-form-error" class="form-error" role="alert">{{ errorMessage }}</p> }
+        <div class="form-actions"><a class="secondary-link" routerLink="/dashboard">Hủy</a><button type="submit" [disabled]="submitting">{{ submitting ? 'Đang lưu...' : editMode ? 'Lưu thay đổi' : 'Tạo công việc' }}</button></div>
+      </form>
+    }
+  </section>
+</main>

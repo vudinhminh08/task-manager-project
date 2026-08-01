@@ -18,32 +18,32 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/transactions/pages/dashboard/dashboard.component').then(
+      import('./features/tasks/pages/dashboard/dashboard.component').then(
         (module) => module.DashboardComponent,
       ),
   },
   {
-    path: 'transactions/new',
+    path: 'tasks/new',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/transactions/pages/transaction-form/transaction-form.component').then(
-        (module) => module.TransactionFormComponent,
+      import('./features/tasks/pages/task-form/task-form.component').then(
+        (module) => module.TaskFormComponent,
       ),
   },
   {
-    path: 'transactions/:id',
+    path: 'tasks/:id',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/transactions/pages/transaction-detail/transaction-detail.component').then(
-        (module) => module.TransactionDetailComponent,
+      import('./features/tasks/pages/task-detail/task-detail.component').then(
+        (module) => module.TaskDetailComponent,
       ),
   },
   {
-    path: 'transactions/:id/edit',
+    path: 'tasks/:id/edit',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/transactions/pages/transaction-form/transaction-form.component').then(
-        (module) => module.TransactionFormComponent,
+      import('./features/tasks/pages/task-form/task-form.component').then(
+        (module) => module.TaskFormComponent,
       ),
   },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
