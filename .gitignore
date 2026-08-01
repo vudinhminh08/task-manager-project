@@ -1,0 +1,35 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Spring Boot and Java
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# IDE and operating system
+.idea/
+.vscode/
+.DS_Store
+
+# Runtime and test output
+*.log
+coverage/
+tmp/
+
+# Local Git worktrees
+.worktrees/
+
+# Local project documentation, kept out of the public repository
+docs/
+
+# Local work transcripts, never tracked
+.ai/

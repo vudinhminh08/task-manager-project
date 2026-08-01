@@ -1,0 +1,52 @@
+<main class="detail-page">
+  <section class="detail-card" [attr.aria-busy]="loading">
+    <a class="back-link" routerLink="/dashboard">← Quay lại tổng quan</a>
+
+    @if (loading) {
+      <p class="state" role="status">Đang tải chi tiết giao dịch...</p>
+    } @else if (errorMessage) {
+      <div class="state error" role="alert">
+        <p>{{ errorMessage }}</p>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+    } @else if (transaction; as item) {
+      <div class="heading">
+        <div>
+          <p class="eyebrow">Chi tiết giao dịch</p>
+          <h1>{{ item.category }}</h1>
+        </div>
+        <a class="edit-link" [routerLink]="['/transactions', item.id, 'edit']">Sửa</a>
+      </div>
+
+      <div class="amount-row">
+        <span class="badge" [class.income-badge]="item.type === 'INCOME'">
+          {{ item.type === 'INCOME' ? 'Khoản thu' : 'Khoản chi' }}
+        </span>
+        <strong>{{ item.amount | currency: 'VND' : 'symbol' : '1.0-0' : 'vi-VN' }}</strong>
+      </div>
+
+      <dl>
+        <div>
+          <dt>Danh mục</dt>
+          <dd>{{ item.category }}</dd>
+        </div>
+        <div>
+          <dt>Mô tả</dt>
+          <dd>{{ item.description || 'Không có mô tả' }}</dd>
+        </div>
+        <div>
+          <dt>Ngày giao dịch</dt>
+          <dd>{{ item.transactionDate | date: 'dd/MM/yyyy' }}</dd>
+        </div>
+        <div>
+          <dt>Ngày tạo</dt>
+          <dd>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi-VN' }}</dd>
+        </div>
+        <div>
+          <dt>Cập nhật lần cuối</dt>
+          <dd>{{ item.updatedAt | date: 'dd/MM/yyyy HH:mm' : 'UTC' : 'vi-VN' }}</dd>
+        </div>
+      </dl>
+    }
+  </section>
+</main>

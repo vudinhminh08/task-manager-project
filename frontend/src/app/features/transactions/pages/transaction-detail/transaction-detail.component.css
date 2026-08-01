@@ -1,0 +1,147 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #172033;
+  background: #f4f7fb;
+}
+
+.detail-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 1rem;
+}
+
+.detail-card {
+  width: min(100%, 720px);
+  box-sizing: border-box;
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 8%);
+}
+
+.heading,
+.amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading {
+  margin-top: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.amount-row {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.amount-row strong {
+  font-size: clamp(1.35rem, 4vw, 2rem);
+}
+
+.badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  color: #9f1239;
+  background: #ffe4e6;
+  font-weight: 800;
+}
+
+.income-badge {
+  color: #047857;
+  background: #d1fae5;
+}
+
+dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+dl div {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.35fr) 1fr;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+dt {
+  color: #64748b;
+  font-weight: 700;
+}
+
+dd {
+  margin: 0;
+}
+
+.back-link,
+.edit-link {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.edit-link,
+button {
+  display: inline-flex;
+  min-height: 44px;
+  box-sizing: border-box;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #2563eb;
+}
+
+.state {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.error {
+  color: #b42318;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 28%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .detail-card {
+    padding: 1.25rem;
+  }
+
+  .heading,
+  .amount-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  dl div {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+}

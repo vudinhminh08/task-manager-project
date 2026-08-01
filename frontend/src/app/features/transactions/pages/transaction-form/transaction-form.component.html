@@ -1,0 +1,132 @@
+<main class="form-page">
+  <section class="form-card" [attr.aria-busy]="loading || submitting">
+    <a class="back-link" routerLink="/dashboard">← Quay lại tổng quan</a>
+    <p class="eyebrow">{{ editMode ? 'Cập nhật' : 'Ghi nhận mới' }}</p>
+    <h1>{{ editMode ? 'Sửa giao dịch' : 'Thêm giao dịch' }}</h1>
+    <p class="intro">Nhập thông tin thu hoặc chi của bạn.</p>
+
+    @if (loading) {
+      <p role="status">Đang tải giao dịch...</p>
+    } @else {
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+        [attr.aria-describedby]="errorMessage ? 'transaction-form-error' : null"
+      >
+        <div class="field">
+          <label for="type">Loại giao dịch</label>
+          <select id="type" formControlName="type">
+            <option value="EXPENSE">Khoản chi</option>
+            <option value="INCOME">Khoản thu</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="amount">Số tiền</label>
+          <input
+            id="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputmode="decimal"
+            formControlName="amount"
+            required
+            [attr.aria-invalid]="form.controls.amount.touched && form.controls.amount.invalid"
+            [attr.aria-describedby]="
+              form.controls.amount.touched && form.controls.amount.invalid ? 'amount-error' : null
+            "
+          />
+          @if (form.controls.amount.touched && form.controls.amount.invalid) {
+            <small id="amount-error" class="field-error">
+              {{ fieldErrors['amount'] || 'Số tiền phải lớn hơn hoặc bằng 0,01.' }}
+            </small>
+          } @else if (fieldErrors['amount']) {
+            <small class="field-error">{{ fieldErrors['amount'] }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="category">Danh mục</label>
+          <input
+            id="category"
+            list="category-options"
+            formControlName="category"
+            maxlength="50"
+            required
+            [attr.aria-invalid]="form.controls.category.touched && form.controls.category.invalid"
+          />
+          <datalist id="category-options">
+            <option value="Lương"></option>
+            <option value="Thưởng"></option>
+            <option value="Ăn uống"></option>
+            <option value="Di chuyển"></option>
+            <option value="Nhà ở"></option>
+            <option value="Giải trí"></option>
+            <option value="Khác"></option>
+          </datalist>
+          @if (form.controls.category.touched && form.controls.category.invalid) {
+            <small class="field-error">
+              {{ fieldErrors['category'] || 'Danh mục phải có từ 1 đến 50 ký tự.' }}
+            </small>
+          } @else if (fieldErrors['category']) {
+            <small class="field-error">{{ fieldErrors['category'] }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="description">Mô tả</label>
+          <textarea
+            id="description"
+            rows="3"
+            maxlength="255"
+            formControlName="description"
+          ></textarea>
+          @if (form.controls.description.touched && form.controls.description.invalid) {
+            <small class="field-error">
+              {{ fieldErrors['description'] || 'Mô tả không vượt quá 255 ký tự.' }}
+            </small>
+          } @else if (fieldErrors['description']) {
+            <small class="field-error">{{ fieldErrors['description'] }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="transaction-date">Ngày giao dịch</label>
+          <input
+            id="transaction-date"
+            type="date"
+            formControlName="transactionDate"
+            [max]="today"
+            required
+            [attr.aria-invalid]="
+              form.controls.transactionDate.touched && form.controls.transactionDate.invalid
+            "
+          />
+          @if (form.controls.transactionDate.touched && form.controls.transactionDate.invalid) {
+            <small class="field-error">
+              {{
+                fieldErrors['transactionDate'] ||
+                  'Ngày giao dịch là bắt buộc và không được ở tương lai.'
+              }}
+            </small>
+          } @else if (fieldErrors['transactionDate']) {
+            <small class="field-error">{{ fieldErrors['transactionDate'] }}</small>
+          }
+        </div>
+
+        @if (errorMessage) {
+          <p id="transaction-form-error" class="form-error" role="alert">
+            {{ errorMessage }}
+          </p>
+        }
+
+        <div class="form-actions">
+          <a class="secondary-link" routerLink="/dashboard">Hủy</a>
+          <button type="submit" [disabled]="submitting">
+            {{ submitting ? 'Đang lưu...' : editMode ? 'Lưu thay đổi' : 'Tạo giao dịch' }}
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</main>
