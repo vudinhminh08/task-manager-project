@@ -1,16 +1,16 @@
-# Expense Tracker Frontend
+# Task Manager Frontend
 
-Standalone Angular 21 application for the Expense Tracker.
+Standalone Angular 21 application for the Task Manager.
 
 ## Prerequisites
 
 - Node.js 22.12 or newer
-- The backend running at `http://localhost:8080`
+- The local Task Manager API running at `http://localhost:8080`
 
 Install dependencies once:
 
 ```bash
-npm install
+npm ci
 ```
 
 ## Start the development server
@@ -19,8 +19,8 @@ npm install
 npm start
 ```
 
-The application is available at `http://localhost:4200`. Requests to `/api` are
-proxied to the local backend at `http://localhost:8080`.
+The application is available at `http://localhost:4200`. Requests to `/api`
+are proxied to the local API at `http://localhost:8080`.
 
 ## Run tests
 
@@ -28,7 +28,7 @@ proxied to the local backend at `http://localhost:8080`.
 npm test -- --watch=false
 ```
 
-## Create a production build
+## Create a local production build
 
 ```bash
 npm run build

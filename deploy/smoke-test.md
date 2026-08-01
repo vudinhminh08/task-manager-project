@@ -1,40 +1,44 @@
-# Production Smoke Test
+# Local Task Manager Smoke Test
 
-Run the scripted API checks first, then work through the browser items below.
-The script covers the API contract; it cannot judge layout, console output, or
-anything that needs a rendered page.
+Run the scripted API checks against a running Spring Boot API connected to
+local PostgreSQL, then work through the browser acceptance items. The script
+creates throwaway users and tasks and exits non-zero when an API assertion
+fails.
+
+## API check
+
+Start PostgreSQL and the backend with the variables in `backend/.env`, then:
 
 ```bash
-./deploy/api-smoke.sh https://<railway-host>
+./deploy/api-smoke.sh
 ```
 
-Expected: `RESULT: 47 passed, 0 failed` and exit status `0`. The script registers
-throwaway accounts, so point it at production only when that is acceptable, and
-record the run in `deploy/evidence/deployment-urls.md`.
+The default target is `http://localhost:8080`. A different local target may be
+passed as the first argument. The script intentionally does not target or
+describe a hosted environment.
 
-- [ ] `deploy/api-smoke.sh` passes against the deployed backend.
+Expected output ends with `RESULT: <passed> passed, 0 failed` and exit status 0.
+If PostgreSQL is unavailable, record that limitation and still run `bash -n`
+and ShellCheck (when installed); static checks do not replace the runtime API
+check.
+
+## Browser acceptance
+
 - [ ] `GET /api/health` returns `200` and `{"status":"UP"}`.
-- [ ] Vercel root opens in an incognito browser.
-- [ ] Refreshing `/dashboard` does not return `404`.
-- [ ] Registration creates a new user.
-- [ ] Duplicate normalized email returns a visible `409` message.
-- [ ] Valid credentials log in and invalid credentials return a visible `401`.
-- [ ] Create one income and one expense transaction.
-- [ ] List shows only the authenticated user's transactions.
-- [ ] Type, category, and month filters return the expected rows.
-- [ ] Detail view shows the selected transaction.
-- [ ] Update changes amount, category, description, and date.
-- [ ] Delete requires confirmation and removes the transaction.
-- [ ] Summary income, expense, and balance update after create, edit, and delete.
-- [ ] User B cannot view, update, or delete User A's transaction.
-- [ ] Zero or negative amount returns field validation.
-- [ ] Future date returns field validation.
-- [ ] Expired or missing token returns `401` and redirects to login.
+- [ ] Registration creates two separate users; duplicate normalized email is rejected visibly.
+- [ ] Valid login succeeds; invalid credentials show a visible error.
+- [ ] The task list initially contains only the signed-in user's tasks.
+- [ ] Create a TODO task with title, description, LOW/MEDIUM/HIGH priority, category, and a due date.
+- [ ] Create a task with `dueDate: null`; the UI leaves the due date empty.
+- [ ] `overdue` is shown only when a non-DONE task's due date has passed.
+- [ ] Update changes title, description, status, priority, category, and due date.
+- [ ] Delete requires confirmation and removes the task.
+- [ ] Status, priority, and case-insensitive category filters produce the expected rows.
+- [ ] Combining filters applies AND semantics.
+- [ ] User B cannot view, update, or delete User A's task.
+- [ ] Blank title and invalid enum values show validation feedback.
+- [ ] Missing or expired authentication returns `401` and returns the user to login.
 - [ ] Desktop layout has no overlap or clipped controls.
-- [ ] 375 px mobile layout remains readable and usable.
+- [ ] A 375 px-wide viewport remains readable and usable.
 - [ ] Browser console has no CORS, mixed-content, or uncaught errors.
-- [ ] Frontend bundle contains no database password or JWT secret.
-- [ ] Backend logs contain no repeated stack trace or connection failure.
-- [ ] Backend redeploy preserves all Neon data.
-- [ ] GitHub, Vercel, Railway health, and demo credential links work from another browser.
-
+- [ ] The local frontend bundle contains no database password or JWT secret.

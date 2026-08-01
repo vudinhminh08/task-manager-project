@@ -1,19 +1,21 @@
-# IT4409 Expense Tracker
+# Task Manager
 
-Personal income and expense manager for the IT4409 final project, built as an
-Angular SPA, Spring Boot REST API, and PostgreSQL database.
+Task Manager is a local Angular SPA, Spring Boot REST API, and PostgreSQL
+application for authenticated task CRUD. A task has a title, optional
+description, status, priority, category, and optional due date. The API derives
+`overdue` from the due date and current status; clients never submit that field.
 
 ## Architecture
 
 ```text
-Angular on Vercel
-    -> Spring Boot REST API on Railway
-    -> PostgreSQL on Neon
+Angular development server (localhost:4200)
+    -> local Spring Boot REST API (localhost:8080)
+    -> local PostgreSQL database
 ```
 
-Angular calls the API with a JWT bearer token. Spring Security resolves the
-current user from that token, and every transaction query is scoped by the
-authenticated user id, so one account can never read or modify another's data.
+The API authenticates requests with a JWT bearer token. Every task query is
+scoped to the authenticated user, so an account cannot read or modify another
+account's tasks.
 
 ## Tech stack
 
@@ -28,23 +30,23 @@ authenticated user id, so one account can never read or modify another's data.
 
 - Node.js 22.12 or newer, with npm.
 - JDK 21, with `JAVA_HOME` pointing at it.
-- A PostgreSQL database (local or a Neon development branch).
+- A local PostgreSQL database and a database user with schema-creation rights.
 
 Maven does not need a global install; the repository ships `backend/mvnw`.
 
 ## Backend environment variables
 
 Create `backend/.env` locally and keep it out of Git. Use a development
-database, never production. `backend/.env.example` shows the safe shape.
+database. `backend/.env.example` shows the safe shape.
 
 | Name | Purpose |
 | --- | --- |
-| `SPRING_DATASOURCE_URL` | JDBC URL of the PostgreSQL database |
+| `SPRING_DATASOURCE_URL` | JDBC URL of the local PostgreSQL database |
 | `SPRING_DATASOURCE_USERNAME` | Database user |
 | `SPRING_DATASOURCE_PASSWORD` | Database password |
 | `JWT_SECRET` | JWT signing key, at least 32 random bytes |
 | `JWT_EXPIRATION_SECONDS` | Access token lifetime; the contract uses `7200` |
-| `CORS_ALLOWED_ORIGINS` | Allowed browser origin, e.g. `http://localhost:4200` |
+| `CORS_ALLOWED_ORIGINS` | Allowed browser origin, normally `http://localhost:4200` |
 | `PORT` | Backend port; defaults to `8080` |
 
 ## Running locally
@@ -57,8 +59,8 @@ set -a; source .env; set +a
 ./mvnw spring-boot:run
 ```
 
-`schema.sql` creates the schema idempotently and JPA verifies the mapping with
-`ddl-auto=validate`. Check the public health endpoint:
+The schema is applied idempotently and JPA validates the mapping at startup.
+Check the public health endpoint:
 
 ```bash
 curl --fail-with-body http://localhost:8080/api/health
@@ -73,47 +75,45 @@ npm ci
 npm start
 ```
 
-Open `http://localhost:4200`. `npm start` uses `frontend/proxy.conf.json` to
-forward `/api` to `http://localhost:8080`, so no source change is needed
-locally.
+Open `http://localhost:4200`. The development proxy forwards `/api` to the
+local backend at `http://localhost:8080`.
 
 ## API
 
 Base path `/api`, JSON payloads. Register, login, and health are public;
-everything else needs `Authorization: Bearer <token>`. Transaction payloads
-never carry a `userId` — the backend always takes it from the verified token.
+everything else needs `Authorization: Bearer <token>`. Task payloads never
+carry `userId` — the backend takes ownership from the verified token.
+
+Task fields:
+
+- `title` — required and non-blank.
+- `description` — optional string, including `null`.
+- `status` — `TODO`, `IN_PROGRESS`, or `DONE`.
+- `priority` — `LOW`, `MEDIUM`, or `HIGH`.
+- `category` — required string used by the category filter.
+- `dueDate` — optional ISO date (`YYYY-MM-DD`), including `null`.
+- `overdue` — derived response field; true only for an unfinished task whose due date has passed.
 
 | Method and path | Success | Behaviour |
 | --- | --- | --- |
 | `POST /api/auth/register` | `201` | Creates an account and returns a token |
 | `POST /api/auth/login` | `200` | Returns a token |
-| `GET /api/transactions` | `200` | Current user's transactions, newest first |
-| `GET /api/transactions/{id}` | `200` | One transaction owned by the current user |
-| `POST /api/transactions` | `201` | Creates a transaction, sets `Location` |
-| `PUT /api/transactions/{id}` | `200` | Replaces the editable fields |
-| `DELETE /api/transactions/{id}` | `204` | Removes the transaction |
+| `GET /api/tasks` | `200` | Current user's tasks |
+| `GET /api/tasks/{id}` | `200` | One task owned by the current user |
+| `POST /api/tasks` | `201` | Creates a task and sets `Location` |
+| `PUT /api/tasks/{id}` | `200` | Replaces the editable task fields |
+| `DELETE /api/tasks/{id}` | `204` | Removes the task |
 | `GET /api/health` | `200` | `{"status":"UP"}`, public |
 
-`GET /api/transactions` accepts optional `type` (`INCOME`/`EXPENSE`),
-`category` (whole-value, case-insensitive), and `month` (`YYYY-MM`). Filters
-combine with AND and are always scoped to the current user.
+`GET /api/tasks` accepts optional `status`, `priority`, and `category` query
+parameters. Category matching is case-insensitive; supplied filters combine
+with AND and remain scoped to the current user.
 
-Every error uses one shape:
-
-```json
-{
-  "timestamp": "2026-07-31T09:20:11Z",
-  "status": 400,
-  "code": "VALIDATION_ERROR",
-  "message": "Dữ liệu không hợp lệ",
-  "path": "/api/transactions",
-  "fieldErrors": { "amount": "Số tiền phải lớn hơn 0" }
-}
-```
-
-Codes in use: `VALIDATION_ERROR`, `MALFORMED_REQUEST`, `INVALID_CREDENTIALS`,
-`UNAUTHORIZED`, `TRANSACTION_NOT_FOUND`, `EMAIL_ALREADY_EXISTS`,
-`INTERNAL_ERROR`. A `500` never carries a stack trace, SQL, or exception name.
+Every error uses one JSON shape with `status`, `code`, `message`, `path`, and
+optional `fieldErrors`. Relevant codes include `VALIDATION_ERROR`,
+`MALFORMED_REQUEST`, `INVALID_CREDENTIALS`, `UNAUTHORIZED`,
+`TASK_NOT_FOUND`, `EMAIL_ALREADY_EXISTS`, and `INTERNAL_ERROR`. A `500` never
+carries a stack trace, SQL, or exception name.
 
 ## Test and build commands
 
@@ -123,7 +123,7 @@ Backend:
 cd backend
 ./mvnw clean test
 ./mvnw -DskipTests clean package
-test -f target/expense-tracker-api.jar
+test -f target/task-manager-api.jar
 ```
 
 Frontend:
@@ -135,44 +135,24 @@ npm test -- --watch=false
 npm run build
 ```
 
-Against a running backend on PostgreSQL:
+With the backend running against local PostgreSQL:
 
 ```bash
-./deploy/api-smoke.sh                        # defaults to localhost:8080
-./deploy/api-smoke.sh https://<railway-host> # a deployed backend
+./deploy/api-smoke.sh                 # defaults to http://localhost:8080
+./deploy/api-smoke.sh http://localhost:8080
 ```
 
-Last recorded run: backend 59 tests pass and the packaged jar is produced;
-frontend 55 tests across 13 files pass and the production bundle builds; the API
-smoke run reports 47 passed, 0 failed against PostgreSQL 16; the browser
-walkthrough passes on desktop and at 375 px. Re-run all of these on the commit
-you actually submit rather than trusting this line.
-
-### Two limitations worth knowing
-
-The automated backend suite runs on H2, which accepts SQL that PostgreSQL
-rejects. Run `deploy/api-smoke.sh` against PostgreSQL before believing the API
-works.
-
-`npm test` cannot replace opening the app in a browser. TestBed installs its own
-zone regardless of how the application is configured, so every component test
-can pass while the running app never repaints.
+The smoke script creates throwaway users and tasks. It is a local release check;
+it does not publish the application or record a hosted environment.
 
 ## Current status
 
-- [x] Auth with BCrypt hashing and stateless JWT.
-- [x] Transaction create, list, detail, update, delete.
-- [x] Type, category, and month filters.
-- [x] Income, expense, and balance summary cards.
-- [x] Ownership enforcement, backend validation, centralized error JSON.
-- [x] Responsive desktop and mobile layout, verified at 1280 px and 375 px.
-- [ ] Public deployment URLs and production smoke evidence, to be recorded only
-      after a successful deployment.
-- [ ] `frontend/src/environments/environment.production.ts` still points at a
-      placeholder Railway host and must be set to the real domain before the
-      Vercel build.
+- [x] JWT authentication with BCrypt password hashing.
+- [x] Task create, list, detail, update, and delete endpoints.
+- [x] Status, priority, and case-insensitive category filters with AND semantics.
+- [x] Per-user ownership enforcement and centralized error JSON.
+- [x] Optional due dates and derived overdue state.
+- [ ] Browser acceptance checklist in `deploy/smoke-test.md` still needs to be run on the submitted commit.
 
-## Deployment
-
-See [deploy/README.md](deploy/README.md) for the runbook and
-[deploy/smoke-test.md](deploy/smoke-test.md) for the production checklist.
+See [deploy/smoke-test.md](deploy/smoke-test.md) for the local API and browser
+acceptance checklist.

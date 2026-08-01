@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 #
-# API smoke test against a running backend.
+# Local Task Manager API smoke test.
 #
 # Usage:
-#   deploy/api-smoke.sh                        # defaults to http://localhost:8080
-#   deploy/api-smoke.sh https://<railway-host>
+#   deploy/api-smoke.sh                         # http://localhost:8080
+#   deploy/api-smoke.sh http://localhost:8080
 #
-# Covers the register/login/create/list/detail/update/delete sequence plus
-# ownership isolation, filters, and the documented error contract. Run it
-# against PostgreSQL, not H2: the automated suite runs on H2 and cannot prove
-# PostgreSQL behavior. Exits non-zero when any check fails.
-#
-# Creates throwaway accounts with random emails. Do not point it at a database
-# holding data you want to keep pristine.
+# The target must be a running API backed by local PostgreSQL. The script
+# creates throwaway accounts and tasks and never needs credentials or hosted
+# service configuration.
 
 set -uo pipefail
 
@@ -22,154 +18,217 @@ fail=0
 
 check() { # check <label> <expected> <actual>
   if [ "$2" = "$3" ]; then
-    printf '  PASS  %-52s %s\n' "$1" "$3"
+    printf '  PASS  %-56s %s\n' "$1" "$3"
     pass=$((pass + 1))
   else
-    printf '  FAIL  %-52s expected %s got %s\n' "$1" "$2" "$3"
+    printf '  FAIL  %-56s expected %s got %s\n' "$1" "$2" "$3"
     fail=$((fail + 1))
   fi
 }
 
-code() { tail -1 <<<"$1"; }
+code() { tail -n 1 <<<"$1"; }
 body() { sed '$d' <<<"$1"; }
-field() { sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" <<<"$1"; }
-rows() { grep -o '"id":' <<<"$1" | wc -l | tr -d ' '; }
+json_string() {
+  sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p" <<<"$2" | head -n 1
+}
+json_bool() {
+  sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*(true|false).*/\1/p" <<<"$2" | head -n 1
+}
+json_number() {
+  sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*([0-9]+).*/\1/p" <<<"$2" | head -n 1
+}
+json_null() {
+  if grep -qE "\"$1\"[[:space:]]*:[[:space:]]*null" <<<"$2"; then
+    printf 'yes'
+  else
+    printf 'no'
+  fi
+}
+json_has_key() {
+  if grep -qE "\"$1\"[[:space:]]*:" <<<"$2"; then
+    printf 'yes'
+  else
+    printf 'no'
+  fi
+}
+rows() {
+  local count
+  count=$(grep -o '"id"[[:space:]]*:' <<<"$1" || true)
+  [ -n "$count" ] && wc -l <<<"$count" | tr -d ' ' || printf '0'
+}
 
 req() { # req <method> <path> <token> [json-body]
-  local method=$1 path=$2 token=$3 data=${4:-}
-  if [ -n "$data" ]; then
-    curl -s -w '\n%{http_code}' -X "$method" "$API$path" \
-      -H 'Content-Type: application/json' \
-      ${token:+-H "Authorization: Bearer $token"} -d "$data"
-  else
-    curl -s -w '\n%{http_code}' -X "$method" "$API$path" \
-      ${token:+-H "Authorization: Bearer $token"}
+  local method="$1" path="$2" token="$3" data="${4-}"
+  local -a args=(-sS -w $'\n%{http_code}' -X "$method" "$API$path")
+  if [ -n "$token" ]; then
+    args+=(-H "Authorization: Bearer $token")
   fi
+  if [ -n "$data" ]; then
+    args+=(-H 'Content-Type: application/json' -d "$data")
+  fi
+  curl "${args[@]}"
 }
 
 status_and_rows() { # status_and_rows <path> <token>
-  local r
-  r=$(req GET "$1" "$2")
-  echo "$(code "$r"):$(rows "$(body "$r")")"
+  local response="$1" token="$2"
+  local result
+  result=$(req GET "$response" "$token")
+  local result_code result_body result_rows
+  result_code=$(code "$result")
+  result_body=$(body "$result")
+  result_rows=$(rows "$result_body")
+  printf '%s:%s' "$result_code" "$result_rows"
 }
 
 echo "Smoke target: $API"
 
 echo '== health =='
-check 'health' 200 "$(code "$(req GET /health '')")"
+health_response=$(req GET /health '')
+check 'health' 200 "$(code "$health_response")"
 
 echo '== auth =='
 A_EMAIL="smoke.a.$RANDOM.$$@example.com"
 B_EMAIL="smoke.b.$RANDOM.$$@example.com"
-PASSWORD='smoke-password'
+PASSWORD="smoke-password-$RANDOM-$$"
 
-r=$(req POST /auth/register '' "{\"email\":\"$A_EMAIL\",\"password\":\"$PASSWORD\"}")
-check 'register A' 201 "$(code "$r")"
-TOKEN_A=$(field "$(body "$r")" accessToken)
+register_a=$(req POST /auth/register '' "{\"email\":\"$A_EMAIL\",\"password\":\"$PASSWORD\"}")
+check 'register A' 201 "$(code "$register_a")"
+register_a_body=$(body "$register_a")
+TOKEN_A=$(json_string accessToken "$register_a_body")
 
-r=$(req POST /auth/register '' "{\"email\":\"$B_EMAIL\",\"password\":\"$PASSWORD\"}")
-check 'register B' 201 "$(code "$r")"
-TOKEN_B=$(field "$(body "$r")" accessToken)
+register_b=$(req POST /auth/register '' "{\"email\":\"$B_EMAIL\",\"password\":\"$PASSWORD\"}")
+check 'register B' 201 "$(code "$register_b")"
+register_b_body=$(body "$register_b")
+TOKEN_B=$(json_string accessToken "$register_b_body")
 
 upper_a=$(printf '%s' "$A_EMAIL" | tr '[:lower:]' '[:upper:]')
-r=$(req POST /auth/register '' "{\"email\":\"  $upper_a  \",\"password\":\"$PASSWORD\"}")
-check 'duplicate email after normalization' 409 "$(code "$r")"
-check '  code' EMAIL_ALREADY_EXISTS "$(field "$(body "$r")" code)"
+duplicate=$(req POST /auth/register '' "{\"email\":\"  $upper_a  \",\"password\":\"$PASSWORD\"}")
+check 'duplicate email after normalization' 409 "$(code "$duplicate")"
+duplicate_body=$(body "$duplicate")
+check '  duplicate error code' EMAIL_ALREADY_EXISTS "$(json_string code "$duplicate_body")"
 
-r=$(req POST /auth/login '' "{\"email\":\"$A_EMAIL\",\"password\":\"$PASSWORD\"}")
-check 'login' 200 "$(code "$r")"
+login_a=$(req POST /auth/login '' "{\"email\":\"$A_EMAIL\",\"password\":\"$PASSWORD\"}")
+check 'login' 200 "$(code "$login_a")"
 
-r=$(req POST /auth/login '' "{\"email\":\"$A_EMAIL\",\"password\":\"wrong-password\"}")
-check 'login with wrong password' 401 "$(code "$r")"
-check '  code' INVALID_CREDENTIALS "$(field "$(body "$r")" code)"
+wrong_password=$(req POST /auth/login '' "{\"email\":\"$A_EMAIL\",\"password\":\"wrong-password\"}")
+check 'login with wrong password' 401 "$(code "$wrong_password")"
+wrong_password_body=$(body "$wrong_password")
+check '  invalid credentials code' INVALID_CREDENTIALS "$(json_string code "$wrong_password_body")"
 
-r=$(req POST /auth/register '' '{"email":"not-an-email","password":"short"}')
-check 'invalid register payload' 400 "$(code "$r")"
-check '  code' VALIDATION_ERROR "$(field "$(body "$r")" code)"
+invalid_register=$(req POST /auth/register '' '{"email":"not-an-email","password":"short"}')
+check 'invalid register payload' 400 "$(code "$invalid_register")"
+invalid_register_body=$(body "$invalid_register")
+check '  validation code' VALIDATION_ERROR "$(json_string code "$invalid_register_body")"
 
 echo '== protected access =='
-r=$(req GET /transactions '')
-check 'missing token' 401 "$(code "$r")"
-check '  code' UNAUTHORIZED "$(field "$(body "$r")" code)"
-check 'malformed token' 401 "$(code "$(req GET /transactions 'garbage.token.value')")"
+missing_token=$(req GET /tasks '')
+check 'missing token' 401 "$(code "$missing_token")"
+missing_token_body=$(body "$missing_token")
+check '  unauthorized code' UNAUTHORIZED "$(json_string code "$missing_token_body")"
+malformed_token=$(req GET /tasks 'garbage.token.value')
+check 'malformed token' 401 "$(code "$malformed_token")"
 
-echo '== transaction CRUD =='
-r=$(req POST /transactions "$TOKEN_A" \
-  '{"type":"EXPENSE","amount":125000.00,"category":"Ăn uống","description":"Bữa trưa","transactionDate":"2026-07-30"}')
-check 'create expense' 201 "$(code "$r")"
-ID_A=$(sed -n 's/.*"id":\([0-9]*\).*/\1/p' <<<"$(body "$r")")
-check '  response omits userId' '' "$(grep -o '"userId"' <<<"$(body "$r")")"
+echo '== task CRUD =='
+create_overdue=$(req POST /tasks "$TOKEN_A" \
+  '{"title":"Write smoke plan","description":"Cover task CRUD","status":"TODO","priority":"HIGH","category":"Work","dueDate":"2000-01-01"}')
+check 'create overdue task' 201 "$(code "$create_overdue")"
+overdue_body=$(body "$create_overdue")
+TASK_A=$(json_number id "$overdue_body")
+check '  response omits userId' no "$(json_has_key userId "$overdue_body")"
+check '  derived overdue is true' true "$(json_bool overdue "$overdue_body")"
 
-check 'create income in an earlier month' 201 "$(code "$(req POST /transactions "$TOKEN_A" \
-  '{"type":"INCOME","amount":15000000.00,"category":"Lương","description":null,"transactionDate":"2026-06-01"}')")"
+create_no_due_date=$(req POST /tasks "$TOKEN_A" \
+  '{"title":"Inbox task","description":null,"status":"IN_PROGRESS","priority":"LOW","category":"Home","dueDate":null}')
+check 'create task with null dueDate' 201 "$(code "$create_no_due_date")"
+no_due_date_body=$(body "$create_no_due_date")
+check '  dueDate remains null' yes "$(json_null dueDate "$no_due_date_body")"
+check '  null dueDate is not overdue' false "$(json_bool overdue "$no_due_date_body")"
 
-r=$(req GET /transactions "$TOKEN_A")
-check 'list' 200 "$(code "$r")"
-check '  returns both rows' 2 "$(rows "$(body "$r")")"
-check '  newest transaction first' '"transactionDate":"2026-07-30"' \
-  "$(grep -o '"transactionDate":"[^"]*"' <<<"$(body "$r")" | head -1)"
+list_a=$(req GET /tasks "$TOKEN_A")
+check 'list' 200 "$(code "$list_a")"
+list_a_body=$(body "$list_a")
+check '  returns both tasks' 2 "$(rows "$list_a_body")"
+check '  list response omits userId' no "$(json_has_key userId "$list_a_body")"
 
-check 'detail' 200 "$(code "$(req GET "/transactions/$ID_A" "$TOKEN_A")")"
+detail_a=$(req GET "/tasks/$TASK_A" "$TOKEN_A")
+check 'detail' 200 "$(code "$detail_a")"
+detail_a_body=$(body "$detail_a")
+check '  detail title' 'Write smoke plan' "$(json_string title "$detail_a_body")"
 
-r=$(req PUT "/transactions/$ID_A" "$TOKEN_A" \
-  '{"type":"EXPENSE","amount":99000.00,"category":"Đi lại","description":"Xe buýt","transactionDate":"2026-07-31"}')
-check 'update' 200 "$(code "$r")"
-check '  amount replaced' 99000.00 "$(sed -n 's/.*"amount":\([0-9.]*\).*/\1/p' <<<"$(body "$r")")"
+update_a=$(req PUT "/tasks/$TASK_A" "$TOKEN_A" \
+  '{"title":"Ship smoke plan","description":"Updated task","status":"DONE","priority":"MEDIUM","category":"Work","dueDate":"2099-01-01"}')
+check 'update' 200 "$(code "$update_a")"
+update_a_body=$(body "$update_a")
+check '  title replaced' 'Ship smoke plan' "$(json_string title "$update_a_body")"
+check '  status replaced' DONE "$(json_string status "$update_a_body")"
+check '  derived overdue is false for DONE' false "$(json_bool overdue "$update_a_body")"
 
 echo '== filters =='
-check 'type'                  '200:1' "$(status_and_rows '/transactions?type=INCOME' "$TOKEN_A")"
-check 'month with rows'       '200:1' "$(status_and_rows '/transactions?month=2026-06' "$TOKEN_A")"
-check 'category lowercased'   '200:1' "$(status_and_rows '/transactions?category=l%C6%B0%C6%A1ng' "$TOKEN_A")"
-check 'category and type'     '200:1' "$(status_and_rows '/transactions?category=L%C6%B0%C6%A1ng&type=INCOME' "$TOKEN_A")"
-check 'filters combine as AND' '200:0' "$(status_and_rows '/transactions?type=INCOME&month=2026-07' "$TOKEN_A")"
-check 'all three filters'     '200:1' "$(status_and_rows '/transactions?type=INCOME&category=L%C6%B0%C6%A1ng&month=2026-06' "$TOKEN_A")"
+filter_status=$(status_and_rows '/tasks?status=IN_PROGRESS' "$TOKEN_A")
+check 'status filter' '200:1' "$filter_status"
+filter_priority=$(status_and_rows '/tasks?priority=HIGH' "$TOKEN_A")
+check 'priority filter' '200:1' "$filter_priority"
+filter_category=$(status_and_rows '/tasks?category=home' "$TOKEN_A")
+check 'case-insensitive category filter' '200:1' "$filter_category"
+filter_and=$(status_and_rows '/tasks?status=IN_PROGRESS&priority=LOW&category=HOME' "$TOKEN_A")
+check 'status, priority, category combine as AND' '200:1' "$filter_and"
+filter_empty=$(status_and_rows '/tasks?status=IN_PROGRESS&priority=HIGH' "$TOKEN_A")
+check 'non-matching AND filters return no rows' '200:0' "$filter_empty"
 
 echo '== ownership isolation =='
-r=$(req GET "/transactions/$ID_A" "$TOKEN_B")
-check "B reads A's transaction" 404 "$(code "$r")"
-check '  code' TRANSACTION_NOT_FOUND "$(field "$(body "$r")" code)"
-check "B updates A's transaction" 404 "$(code "$(req PUT "/transactions/$ID_A" "$TOKEN_B" \
-  '{"type":"EXPENSE","amount":1.00,"category":"x","description":null,"transactionDate":"2026-07-01"}')")"
-check "B deletes A's transaction" 404 "$(code "$(req DELETE "/transactions/$ID_A" "$TOKEN_B")")"
-check "B's list is empty" '200:0' "$(status_and_rows /transactions "$TOKEN_B")"
+b_detail=$(req GET "/tasks/$TASK_A" "$TOKEN_B")
+check "B reads A's task" 404 "$(code "$b_detail")"
+b_detail_body=$(body "$b_detail")
+check '  code' TASK_NOT_FOUND "$(json_string code "$b_detail_body")"
+b_update=$(req PUT "/tasks/$TASK_A" "$TOKEN_B" \
+  '{"title":"Should fail","description":null,"status":"TODO","priority":"LOW","category":"Other","dueDate":null}')
+check "B updates A's task" 404 "$(code "$b_update")"
+b_delete=$(req DELETE "/tasks/$TASK_A" "$TOKEN_B")
+check "B deletes A's task" 404 "$(code "$b_delete")"
+check "B's list is empty" '200:0' "$(status_and_rows /tasks "$TOKEN_B")"
 
 echo '== error contract =='
-r=$(req POST /transactions "$TOKEN_A" \
-  '{"type":"EXPENSE","amount":-5,"category":"","description":null,"transactionDate":"2026-07-30"}')
-check 'negative amount and blank category' 400 "$(code "$r")"
-check '  code' VALIDATION_ERROR "$(field "$(body "$r")" code)"
-check '  reports the offending fields' yes \
-  "$(grep -q '"fieldErrors":{"' <<<"$(body "$r")" && echo yes || echo no)"
+blank_title=$(req POST /tasks "$TOKEN_A" \
+  '{"title":"   ","description":null,"status":"TODO","priority":"LOW","category":"Other","dueDate":null}')
+check 'blank title' 400 "$(code "$blank_title")"
+blank_title_body=$(body "$blank_title")
+check '  blank title code' VALIDATION_ERROR "$(json_string code "$blank_title_body")"
 
-check 'future transaction date' 400 "$(code "$(req POST /transactions "$TOKEN_A" \
-  '{"type":"EXPENSE","amount":10,"category":"x","description":null,"transactionDate":"2099-01-01"}')")"
+invalid_enum=$(req POST /tasks "$TOKEN_A" \
+  '{"title":"Bad enum","description":null,"status":"BLOCKED","priority":"LOW","category":"Other","dueDate":null}')
+check 'invalid status enum' 400 "$(code "$invalid_enum")"
+invalid_enum_body=$(body "$invalid_enum")
+check '  invalid enum code' MALFORMED_REQUEST "$(json_string code "$invalid_enum_body")"
 
-r=$(req GET '/transactions?type=OTHER' "$TOKEN_A")
-check 'unknown type value' 400 "$(code "$r")"
-check '  code' MALFORMED_REQUEST "$(field "$(body "$r")" code)"
+malformed_json=$(req POST /tasks "$TOKEN_A" '{"title":')
+check 'malformed JSON body' 400 "$(code "$malformed_json")"
+malformed_json_body=$(body "$malformed_json")
+check '  malformed JSON code' MALFORMED_REQUEST "$(json_string code "$malformed_json_body")"
 
-r=$(req GET '/transactions?month=2026-7' "$TOKEN_A")
-check 'malformed month value' 400 "$(code "$r")"
-check '  code' MALFORMED_REQUEST "$(field "$(body "$r")" code)"
-
-r=$(curl -s -w '\n%{http_code}' -X POST "$API/transactions" \
-  -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN_A" -d '{"type":')
-check 'malformed JSON body' 400 "$(code "$r")"
-check '  code' MALFORMED_REQUEST "$(field "$(body "$r")" code)"
+missing_task=$(req GET /tasks/999999999 "$TOKEN_A")
+check 'missing task' 404 "$(code "$missing_task")"
+missing_task_body=$(body "$missing_task")
+check '  missing task code' TASK_NOT_FOUND "$(json_string code "$missing_task_body")"
 
 echo '== delete =='
-check 'delete' 204 "$(code "$(req DELETE "/transactions/$ID_A" "$TOKEN_A")")"
-check 'detail after delete' 404 "$(code "$(req GET "/transactions/$ID_A" "$TOKEN_A")")"
+delete_a=$(req DELETE "/tasks/$TASK_A" "$TOKEN_A")
+check 'delete' 204 "$(code "$delete_a")"
+deleted_detail=$(req GET "/tasks/$TASK_A" "$TOKEN_A")
+check 'detail after delete' 404 "$(code "$deleted_detail")"
 
 echo '== CORS =='
 ORIGIN="${CORS_ORIGIN:-http://localhost:4200}"
-preflight=$(curl -s -i -X OPTIONS "$API/transactions" \
+preflight=$(curl -sS -i -X OPTIONS "$API/tasks" \
   -H "Origin: $ORIGIN" -H 'Access-Control-Request-Method: GET')
-check "preflight allows $ORIGIN" yes \
-  "$(grep -qi "access-control-allow-origin: $ORIGIN" <<<"$preflight" && echo yes || echo no)"
-check 'preflight rejects an unknown origin' 403 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS "$API/transactions" \
-    -H 'Origin: http://unknown.example.com' -H 'Access-Control-Request-Method: GET')"
+if grep -qi "^access-control-allow-origin:[[:space:]]*$ORIGIN" <<<"$preflight"; then
+  cors_allowed=yes
+else
+  cors_allowed=no
+fi
+check "preflight allows $ORIGIN" yes "$cors_allowed"
+cors_rejected=$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS "$API/tasks" \
+  -H 'Origin: http://unknown.example.com' -H 'Access-Control-Request-Method: GET')
+check 'preflight rejects an unknown origin' 403 "$cors_rejected"
 
 echo
 echo "RESULT: $pass passed, $fail failed"
