@@ -8,26 +8,29 @@ CREATE TABLE IF NOT EXISTS users (
         CHECK (email = lower(btrim(email)))
 );
 
-CREATE TABLE IF NOT EXISTS transactions (
+CREATE TABLE IF NOT EXISTS tasks (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(7) NOT NULL,
-    amount NUMERIC(15,2) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description VARCHAR(500),
+    status VARCHAR(11) NOT NULL,
+    priority VARCHAR(6) NOT NULL,
     category VARCHAR(50) NOT NULL,
-    description VARCHAR(255),
-    transaction_date DATE NOT NULL,
+    due_date DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT ck_transactions_type
-        CHECK (type IN ('INCOME', 'EXPENSE')),
-    CONSTRAINT ck_transactions_amount_positive
-        CHECK (amount > 0),
-    CONSTRAINT ck_transactions_category
+    CONSTRAINT ck_tasks_status
+        CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE')),
+    CONSTRAINT ck_tasks_priority
+        CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH')),
+    CONSTRAINT ck_tasks_title
+        CHECK (title = btrim(title) AND char_length(title) BETWEEN 1 AND 120),
+    CONSTRAINT ck_tasks_category
         CHECK (
             category = btrim(category)
             AND char_length(category) BETWEEN 1 AND 50
         )
 );
 
-CREATE INDEX IF NOT EXISTS idx_transactions_user_date_id
-    ON transactions (user_id, transaction_date DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_tasks_user_created_id
+    ON tasks (user_id, created_at DESC, id DESC);

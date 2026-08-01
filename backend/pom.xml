@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>vn.edu.hust</groupId>
-	<artifactId>expense-tracker-api</artifactId>
+	<artifactId>task-manager-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>expense-tracker-api</name>
+	<name>task-manager-api</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -85,7 +85,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>expense-tracker-api</finalName>
+		<finalName>task-manager-api</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
