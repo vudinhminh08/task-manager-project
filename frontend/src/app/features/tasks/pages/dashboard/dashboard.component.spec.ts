@@ -160,6 +160,7 @@ describe('Task DashboardComponent', () => {
     expect(cells[3].classList).toContain('task-due-cell');
     expect(cells[4].classList).toContain('actions-cell');
     expect(cells[4].querySelectorAll('.pin-button, .task-menu')).toHaveLength(2);
+    expect(cells[4].querySelectorAll('.task-action-button')).toHaveLength(2);
   });
 
   it('closes an open task menu when clicking outside the menu', () => {
@@ -171,5 +172,75 @@ describe('Task DashboardComponent', () => {
     document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     expect(menu.open).toBe(false);
+  });
+
+  it('starts the important-work section collapsed on mobile and can expand it', () => {
+    const innerWidth = vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(390);
+    service.list.mockReturnValue(of([{ ...todo, pinned: true }, done]));
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.componentInstance as DashboardComponent & { pinnedOpen?: boolean }).pinnedOpen,
+    ).toBe(false);
+    expect(fixture.nativeElement.querySelector('.pinned-grid')).toBeNull();
+
+    (fixture.componentInstance as DashboardComponent & { togglePinned: () => void }).togglePinned();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.pinned-grid')).toBeTruthy();
+    const pinnedCard = fixture.nativeElement.querySelector('.pinned-card') as HTMLElement;
+    expect(pinnedCard.querySelector('.pin-mark')).toBeTruthy();
+    expect(pinnedCard.querySelector('.pinned-title')).toBeTruthy();
+    expect(pinnedCard.querySelector('.pinned-due')).toBeTruthy();
+    innerWidth.mockRestore();
+  });
+
+  it('uses a compact mobile card with one status control and condensed metadata', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.task-card') as HTMLElement;
+    expect(card.querySelector('.card-info')).toBeTruthy();
+    expect(card.querySelector('.card-info .card-category')).toBeTruthy();
+    expect(card.querySelector('.card-info .card-due')).toBeTruthy();
+    expect(card.querySelector('.card-info .priority')).toBeNull();
+    expect(card.querySelector('.card-header-actions .priority')).toBeTruthy();
+    expect(card.querySelector('.card-heading .badge')).toBeNull();
+    expect(card.querySelector('.card-actions .mobile-status')).toBeTruthy();
+    expect(card.querySelectorAll('.task-action-button')).toHaveLength(2);
+  });
+
+  it('keeps the pinned section heading concise with an arrow-only toggle', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.pinned-panel') as HTMLElement;
+    const toggle = panel.querySelector('.pinned-toggle') as HTMLButtonElement;
+    expect(panel.querySelector('.eyebrow')).toBeNull();
+    expect(toggle.querySelector('.pinned-toggle-icon')).toBeTruthy();
+    expect(toggle.querySelector('.pinned-toggle-label')).toBeNull();
+  });
+
+  it('uses visual row states for overdue, TODO, and DONE tasks without an overdue label', () => {
+    service.list.mockReturnValue(
+      of([todo, { ...todo, id: 3, title: 'Đang làm', status: 'IN_PROGRESS', dueDate: null }, done]),
+    );
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(rows[0].classList).toContain('task-todo');
+    expect(rows[0].classList).toContain('task-overdue');
+    expect(rows[0].querySelector('.task-due-overdue')).toBeTruthy();
+    expect(rows[1].classList).toContain('task-in-progress');
+    expect(rows[2].classList).toContain('task-done');
+    expect(fixture.nativeElement.querySelectorAll('.overdue-label')).toHaveLength(0);
+
+    const cards = fixture.nativeElement.querySelectorAll('.task-card');
+    expect(cards[0].classList).toContain('task-todo');
+    expect(cards[0].classList).toContain('task-overdue');
+    expect(cards[0].querySelector('.task-due-overdue')).toBeTruthy();
+    expect(cards[1].classList).toContain('task-in-progress');
+    expect(cards[2].classList).toContain('task-done');
   });
 });

@@ -4,9 +4,10 @@
     [attr.aria-busy]="loading || submitting"
     aria-labelledby="task-form-title"
   >
-    <a class="back-link" routerLink="/dashboard">← Quay lại danh sách</a>
-    <p class="eyebrow">{{ editMode ? 'Cập nhật' : 'Công việc mới' }}</p>
-    <h1 id="task-form-title">{{ editMode ? 'Sửa công việc' : 'Tạo công việc' }}</h1>
+    <div>
+      <a class="back-link" routerLink="/dashboard">← Quay lại danh sách</a>
+      <h1 id="task-form-title">{{ editMode ? 'Cập nhật' : 'Tạo công việc' }}</h1>
+    </div>
 
     <!-- Fix #13: spinner loading state -->
     @if (loading) {

@@ -1,71 +1,73 @@
 @if (visible()) {
   <header class="app-header">
-    <a class="brand" routerLink="/dashboard" aria-label="Task Manager, về dashboard"
-      >Task Manager</a
-    >
-    <nav aria-label="Điều hướng chính">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >Dashboard</a
+    <div class="header-main">
+      <a class="brand" routerLink="/dashboard" aria-label="Task Manager, về dashboard"
+        >Task Manager</a
       >
-      <a routerLink="/statistics" routerLinkActive="active">Thống kê</a>
-    </nav>
-    <div class="account" [class.account--open]="menuOpen">
-      <button
-        type="button"
-        class="account-button"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="menuOpen"
-        (click)="toggleMenu()"
-      >
-        <span class="avatar" aria-hidden="true">{{ initials }}</span>
-        <span class="account-name">{{ displayName }}</span>
-        <svg
-          class="chevron"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
+      <nav class="primary-tabs" aria-label="Điều hướng chính">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Dashboard</a
         >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      @if (menuOpen) {
-        <div class="account-menu" role="menu">
-          <a routerLink="/profile" role="menuitem" (click)="closeMenu()">
-            <svg
-              class="menu-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
-            >
-              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            <span>Hồ sơ cá nhân</span>
-          </a>
-          <button type="button" role="menuitem" (click)="logout()">
-            <svg
-              class="menu-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span>Đăng xuất</span>
-          </button>
-        </div>
-      }
+        <a routerLink="/statistics" routerLinkActive="active">Thống kê</a>
+      </nav>
+      <div class="account" [class.account--open]="menuOpen">
+        <button
+          type="button"
+          class="account-button"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="menuOpen"
+          (click)="toggleMenu()"
+        >
+          <span class="avatar" aria-hidden="true">{{ initials }}</span>
+          <span class="account-name">{{ displayName }}</span>
+          <svg
+            class="chevron"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+        @if (menuOpen) {
+          <div class="account-menu" role="menu">
+            <a routerLink="/profile" role="menuitem" (click)="closeMenu()">
+              <svg
+                class="menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Hồ sơ cá nhân</span>
+            </a>
+            <button type="button" role="menuitem" (click)="logout()">
+              <svg
+                class="menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Đăng xuất</span>
+            </button>
+          </div>
+        }
+      </div>
     </div>
   </header>
 }

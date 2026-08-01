@@ -69,7 +69,7 @@
   <section class="panel filters-panel" aria-labelledby="filter-title">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Bộ lọc</p>
+        <!-- <p class="eyebrow">Bộ lọc</p> -->
         <h2 id="filter-title">Tìm công việc</h2>
       </div>
       <a class="primary-link" routerLink="/tasks/new">Tạo công việc</a>
@@ -118,38 +118,66 @@
   <section class="panel pinned-panel" aria-labelledby="pinned-title">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Ghim nhanh</p>
         <h2 id="pinned-title">Công việc quan trọng</h2>
       </div>
-      <span>{{ pinnedTasks.length }} mục</span>
+      <button
+        type="button"
+        class="pinned-toggle"
+        [attr.aria-expanded]="pinnedOpen"
+        [attr.aria-label]="
+          pinnedOpen ? 'Thu gọn công việc quan trọng' : 'Mở rộng công việc quan trọng'
+        "
+        aria-controls="pinned-content"
+        (click)="togglePinned()"
+      >
+        <span class="pinned-toggle-icon" aria-hidden="true"></span>
+      </button>
     </div>
-    @if (pinnedTasks.length === 0) {
-      <p class="pinned-empty">
-        Chưa có công việc được ghim. Hãy ghim công việc quan trọng để truy cập nhanh.
-      </p>
-    } @else {
-      <div class="pinned-grid">
-        @for (task of pinnedTasks; track task.id) {
-          <a class="pinned-card" [routerLink]="['/tasks', task.id]">
-            <span class="pin-mark" aria-hidden="true">★</span>
-            <strong>{{ task.title }}</strong>
-            <span class="pinned-meta">
-              {{
-                task.status === 'TODO'
-                  ? 'Cần làm'
-                  : task.status === 'IN_PROGRESS'
-                    ? 'Đang làm'
-                    : 'Hoàn thành'
-              }}
-              ·
-              {{
-                task.priority === 'LOW' ? 'Thấp' : task.priority === 'HIGH' ? 'Cao' : 'Trung bình'
-              }}
-            </span>
-            <span class="pinned-due">{{
-              task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn'
-            }}</span>
-          </a>
+    @if (pinnedOpen) {
+      <div id="pinned-content">
+        @if (pinnedTasks.length === 0) {
+          <p class="pinned-empty">
+            Chưa có công việc được ghim. Hãy ghim công việc quan trọng để truy cập nhanh.
+          </p>
+        } @else {
+          <div class="pinned-grid">
+            @for (task of pinnedTasks; track task.id) {
+              <a class="pinned-card" [routerLink]="['/tasks', task.id]">
+                <div class="pinned-card-header">
+                  <span class="pin-mark" aria-hidden="true">★</span>
+                  <strong class="pinned-title">{{ task.title }}</strong>
+                  <span class="pinned-due pinned-due--mobile">{{
+                    task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn'
+                  }}</span>
+                </div>
+                <div class="pinned-card-footer">
+                  <div class="pinned-meta-stack">
+                    <span class="pinned-status">
+                      {{
+                        task.status === 'TODO'
+                          ? 'Cần làm'
+                          : task.status === 'IN_PROGRESS'
+                            ? 'Đang làm'
+                            : 'Hoàn thành'
+                      }}
+                    </span>
+                    <span class="pinned-priority">
+                      {{
+                        task.priority === 'LOW'
+                          ? 'Thấp'
+                          : task.priority === 'HIGH'
+                            ? 'Cao'
+                            : 'Trung bình'
+                      }}
+                    </span>
+                  </div>
+                  <span class="pinned-due pinned-due--desktop">{{
+                    task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn'
+                  }}</span>
+                </div>
+              </a>
+            }
+          </div>
         }
       </div>
     }
@@ -220,15 +248,17 @@
           <tbody>
             @for (task of pagedTasks; track task.id) {
               <!-- Fix #5: DONE tasks are dimmed -->
-              <tr [class.task-done]="task.status === 'DONE'">
+              <tr
+                [class.task-done]="task.status === 'DONE'"
+                [class.task-todo]="task.status === 'TODO'"
+                [class.task-in-progress]="task.status === 'IN_PROGRESS'"
+                [class.task-overdue]="isOverdue(task)"
+              >
                 <td>
                   <div class="task-title-cell">
                     <a class="task-title" [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
                     <div class="task-meta">
                       <span>{{ task.category }}</span>
-                      @if (isOverdue(task)) {
-                        <span class="overdue-label">Quá hạn</span>
-                      }
                     </div>
                   </div>
                 </td>
@@ -260,13 +290,15 @@
                   }}</span>
                 </td>
                 <td class="task-due-cell">
-                  {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
+                  <span [class.task-due-overdue]="isOverdue(task)">
+                    {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
+                  </span>
                 </td>
                 <td class="actions-cell">
                   <div class="row-actions">
                     <button
                       type="button"
-                      class="pin-button"
+                      class="task-action-button pin-button"
                       [class.pin-button--active]="task.pinned"
                       [attr.aria-label]="
                         task.pinned ? 'Bỏ ghim ' + task.title : 'Ghim ' + task.title
@@ -279,7 +311,7 @@
                     </button>
                     <details class="task-menu">
                       <summary
-                        class="task-menu-trigger"
+                        class="task-action-button task-menu-trigger"
                         title="Thao tác khác"
                         aria-label="Thao tác khác"
                       >
@@ -310,83 +342,98 @@
         </table>
       </div>
 
-      <!-- ===== Mobile Cards (Fix #2: shows priority + overdue) ===== -->
+      <!-- ===== Mobile Cards (Compact Header with Top-Right Action Buttons) ===== -->
       <div class="mobile-list">
         @for (task of pagedTasks; track task.id) {
-          <article class="task-card" [class.task-done]="task.status === 'DONE'">
-            <div class="card-heading">
-              <a [routerLink]="['/tasks', task.id]"
-                ><h3>{{ task.title }}</h3></a
-              >
-              <span [class]="'badge badge-' + statusClass(task.status)">{{
-                task.status === 'TODO'
-                  ? 'Cần làm'
-                  : task.status === 'IN_PROGRESS'
-                    ? 'Đang làm'
-                    : 'Hoàn thành'
-              }}</span>
-            </div>
-            <!-- Fix #2: mobile now shows priority + overdue -->
-            <div class="card-meta">
-              <span [class]="'priority priority-' + priorityClass(task.priority)">{{
-                task.priority === 'LOW' ? 'Thấp' : task.priority === 'HIGH' ? 'Cao' : 'Trung bình'
-              }}</span>
-              @if (isOverdue(task)) {
-                <span class="overdue-label">Quá hạn</span>
-              }
-            </div>
-            <label class="mobile-status">
-              <span>Trạng thái:</span>
-              <div class="mobile-status-shell">
-                <select
-                  [value]="task.status"
-                  [disabled]="statusUpdatingId === task.id"
-                  (change)="updateStatus(task, $event)"
-                >
-                  <option value="TODO">Cần làm</option>
-                  <option value="IN_PROGRESS">Đang làm</option>
-                  <option value="DONE">Hoàn thành</option>
-                </select>
+          <article
+            class="task-card"
+            [class.task-done]="task.status === 'DONE'"
+            [class.task-todo]="task.status === 'TODO'"
+            [class.task-in-progress]="task.status === 'IN_PROGRESS'"
+            [class.task-overdue]="isOverdue(task)"
+          >
+            <div class="card-header-row">
+              <div class="card-title-group">
+                <a [routerLink]="['/tasks', task.id]" class="card-title-link">
+                  <h3>{{ task.title }}</h3>
+                </a>
+                <div class="card-info">
+                  <span class="card-category">{{ task.category }}</span>
+                  <span class="card-due">
+                    <span [class.task-due-overdue]="isOverdue(task)">
+                      {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
+                    </span>
+                  </span>
+                </div>
               </div>
-            </label>
-            <p class="card-description">{{ task.description || 'Chưa có mô tả' }}</p>
-            <p class="card-footer">
-              {{ task.category }} ·
-              {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}
-            </p>
-            <div class="card-actions">
-              <button
-                type="button"
-                class="pin-button"
-                [class.pin-button--active]="task.pinned"
-                [attr.aria-label]="task.pinned ? 'Bỏ ghim ' + task.title : 'Ghim ' + task.title"
-                [attr.title]="task.pinned ? 'Bỏ ghim' : 'Ghim'"
-                [disabled]="pinUpdatingId === task.id"
-                (click)="togglePin(task)"
-              >
-                {{ task.pinned ? '★' : '☆' }}
-              </button>
-              <details class="task-menu">
-                <summary class="task-menu-trigger" title="Thao tác khác" aria-label="Thao tác khác">
-                  <span aria-hidden="true">⋮</span>
-                </summary>
-                <div class="task-menu-panel">
-                  <a class="task-menu-item" [routerLink]="['/tasks', task.id, 'edit']">
-                    <span aria-hidden="true">✎</span> Sửa
-                  </a>
-                  <button type="button" class="task-menu-item" (click)="duplicateTask(task)">
-                    <span aria-hidden="true">▣</span> Nhân bản
-                  </button>
+
+              <div class="card-header-actions">
+                <div class="card-action-buttons">
                   <button
                     type="button"
-                    class="task-menu-item task-menu-item--danger"
-                    [disabled]="deletingId === task.id"
-                    (click)="deleteTask(task.id)"
+                    class="task-action-button pin-button"
+                    [class.pin-button--active]="task.pinned"
+                    [attr.aria-label]="task.pinned ? 'Bỏ ghim ' + task.title : 'Ghim ' + task.title"
+                    [attr.title]="task.pinned ? 'Bỏ ghim' : 'Ghim'"
+                    [disabled]="pinUpdatingId === task.id"
+                    (click)="togglePin(task)"
                   >
-                    <span aria-hidden="true">⌫</span> Xóa
+                    {{ task.pinned ? '★' : '☆' }}
                   </button>
+                  <details class="task-menu task-menu--sm">
+                    <summary
+                      class="task-action-button task-menu-trigger"
+                      title="Thao tác khác"
+                      aria-label="Thao tác khác"
+                    >
+                      <span aria-hidden="true">⋮</span>
+                    </summary>
+                    <div class="task-menu-panel">
+                      <a class="task-menu-item" [routerLink]="['/tasks', task.id, 'edit']">
+                        <span aria-hidden="true">✎</span> Sửa
+                      </a>
+                      <button type="button" class="task-menu-item" (click)="duplicateTask(task)">
+                        <span aria-hidden="true">▣</span> Nhân bản
+                      </button>
+                      <button
+                        type="button"
+                        class="task-menu-item task-menu-item--danger"
+                        [disabled]="deletingId === task.id"
+                        (click)="deleteTask(task.id)"
+                      >
+                        <span aria-hidden="true">⌫</span> Xóa
+                      </button>
+                    </div>
+                  </details>
                 </div>
-              </details>
+                <span [class]="'priority priority-' + priorityClass(task.priority)">
+                  {{
+                    task.priority === 'LOW'
+                      ? 'Thấp'
+                      : task.priority === 'HIGH'
+                        ? 'Cao'
+                        : 'Trung bình'
+                  }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <label class="mobile-status">
+                <span class="sr-only">Trạng thái {{ task.title }}</span>
+                <div class="mobile-status-shell">
+                  <select
+                    [attr.aria-label]="'Trạng thái ' + task.title"
+                    [value]="task.status"
+                    [disabled]="statusUpdatingId === task.id"
+                    (change)="updateStatus(task, $event)"
+                  >
+                    <option value="TODO">Cần làm</option>
+                    <option value="IN_PROGRESS">Đang làm</option>
+                    <option value="DONE">Hoàn thành</option>
+                  </select>
+                </div>
+              </label>
             </div>
           </article>
         }

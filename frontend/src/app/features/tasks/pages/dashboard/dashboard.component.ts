@@ -42,6 +42,7 @@ export class DashboardComponent implements OnInit {
   pinUpdatingId: number | null = null;
   currentPage = 1;
   readonly pageSize = 10;
+  pinnedOpen = typeof window === 'undefined' || window.innerWidth > 620;
 
   constructor(
     private readonly tasksApi: TaskService,
@@ -129,6 +130,10 @@ export class DashboardComponent implements OnInit {
   clearFilters(): void {
     this.filters.reset({ status: '', priority: '', category: '' });
     this.load();
+  }
+
+  togglePinned(): void {
+    this.pinnedOpen = !this.pinnedOpen;
   }
 
   goToPage(page: number): void {

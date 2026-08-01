@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../features/auth/auth.service';
@@ -52,6 +52,14 @@ export class AppHeaderComponent {
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
   }
+
+  @HostListener('document:click', ['$event'])
+  closeMenuOnOutsideClick(event: MouseEvent): void {
+    const target = event.target;
+    if (target instanceof Element && target.closest('.account')) return;
+    this.menuOpen = false;
+  }
+
   closeMenu(): void {
     this.menuOpen = false;
   }
