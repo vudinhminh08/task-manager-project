@@ -11,7 +11,7 @@ const authResponse: AuthResponse = {
   accessToken: 'signed-token',
   tokenType: 'Bearer',
   expiresIn: 7200,
-  user: { id: 1, email: 'demo.expense@example.com' },
+  user: { id: 1, email: 'demo@example.com' },
 };
 
 const invalidCredentialsError: ApiError = {
@@ -49,7 +49,7 @@ describe('LoginComponent', () => {
     expect(component.form.invalid).toBe(true);
 
     component.form.setValue({
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     });
     expect(component.form.valid).toBe(true);
@@ -70,14 +70,14 @@ describe('LoginComponent', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     authService.login.mockReturnValue(of(authResponse));
     component.form.setValue({
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     });
 
     component.submit();
 
     expect(authService.login).toHaveBeenCalledWith({
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     });
     expect(navigate).toHaveBeenCalledWith(['/dashboard']);
@@ -96,7 +96,7 @@ describe('LoginComponent', () => {
       ),
     );
     component.form.setValue({
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     });
 
@@ -110,7 +110,7 @@ describe('LoginComponent', () => {
     const request = new Subject<AuthResponse>();
     authService.login.mockReturnValue(request);
     component.form.setValue({
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     });
 

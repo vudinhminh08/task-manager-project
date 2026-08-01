@@ -36,7 +36,7 @@ function isAuthResponse(value: unknown): value is AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly storageKey = 'expense.auth';
+  private readonly storageKey = 'task-manager.auth';
 
   constructor(private readonly http: HttpClient) {}
 

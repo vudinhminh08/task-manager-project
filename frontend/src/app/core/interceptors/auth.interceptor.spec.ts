@@ -43,9 +43,9 @@ describe('authInterceptor', () => {
     authService.token.mockReturnValue('signed-token');
     const client = TestBed.inject(HttpClient);
 
-    const response = firstValueFrom(client.get('/api/transactions'));
+    const response = firstValueFrom(client.get('/api/tasks'));
 
-    const request = http.expectOne('/api/transactions');
+    const request = http.expectOne('/api/tasks');
     expect(request.request.headers.get('Authorization')).toBe('Bearer signed-token');
     request.flush([]);
     await response;
@@ -55,9 +55,9 @@ describe('authInterceptor', () => {
     authService.token.mockReturnValue(null);
     const client = TestBed.inject(HttpClient);
 
-    const response = firstValueFrom(client.get('/api/transactions'));
+    const response = firstValueFrom(client.get('/api/tasks'));
 
-    const request = http.expectOne('/api/transactions');
+    const request = http.expectOne('/api/tasks');
     expect(request.request.headers.has('Authorization')).toBe(false);
     request.flush([]);
     await response;
@@ -66,9 +66,9 @@ describe('authInterceptor', () => {
   it('logs out, redirects to login, and propagates a 401 response', async () => {
     authService.token.mockReturnValue('expired-token');
     const client = TestBed.inject(HttpClient);
-    const response = firstValueFrom(client.get('/api/transactions'));
+    const response = firstValueFrom(client.get('/api/tasks'));
 
-    const request = http.expectOne('/api/transactions');
+    const request = http.expectOne('/api/tasks');
     request.flush(null, { status: 401, statusText: 'Unauthorized' });
 
     await expect(response).rejects.toMatchObject({ status: 401 });

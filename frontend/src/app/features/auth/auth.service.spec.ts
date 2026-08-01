@@ -8,7 +8,7 @@ const storedAuthFixture: AuthResponse = {
   accessToken: 'signed-token',
   tokenType: 'Bearer',
   expiresIn: 7200,
-  user: { id: 1, email: 'demo.expense@example.com' },
+  user: { id: 1, email: 'demo@example.com' },
 };
 
 const invalidStoredAuthCases = [
@@ -27,7 +27,7 @@ const invalidStoredAuthCases = [
   {
     name: 'a non-finite expiration duration',
     value:
-      '{"accessToken":"signed-token","tokenType":"Bearer","expiresIn":1e309,"user":{"id":1,"email":"demo.expense@example.com"}}',
+      '{"accessToken":"signed-token","tokenType":"Bearer","expiresIn":1e309,"user":{"id":1,"email":"demo@example.com"}}',
   },
   {
     name: 'a zero user id',
@@ -69,14 +69,14 @@ describe('AuthService', () => {
 
   it('stores authentication after login', () => {
     const loginRequest: AuthRequest = {
-      email: 'demo.expense@example.com',
+      email: 'demo@example.com',
       password: 'Demo@2026',
     };
     const authResponse: AuthResponse = {
       accessToken: 'signed-token',
       tokenType: 'Bearer',
       expiresIn: 7200,
-      user: { id: 1, email: 'demo.expense@example.com' },
+      user: { id: 1, email: 'demo@example.com' },
     };
 
     service.login(loginRequest).subscribe();
@@ -86,7 +86,7 @@ describe('AuthService', () => {
     expect(request.request.body).toEqual(loginRequest);
     request.flush(authResponse);
 
-    expect(localStorage.getItem('expense.auth')).toBe(JSON.stringify(authResponse));
+    expect(localStorage.getItem('task-manager.auth')).toBe(JSON.stringify(authResponse));
     expect(service.token()).toBe('signed-token');
     expect(service.currentUser()).toEqual(authResponse.user);
     expect(service.isAuthenticated()).toBe(true);
@@ -94,14 +94,14 @@ describe('AuthService', () => {
 
   it('registers and stores authentication', () => {
     const registerRequest: AuthRequest = {
-      email: 'new.expense@example.com',
+      email: 'new@example.com',
       password: 'Demo@2026',
     };
     const authResponse: AuthResponse = {
       accessToken: 'registered-token',
       tokenType: 'Bearer',
       expiresIn: 7200,
-      user: { id: 2, email: 'new.expense@example.com' },
+      user: { id: 2, email: 'new@example.com' },
     };
 
     service.register(registerRequest).subscribe();
@@ -111,7 +111,7 @@ describe('AuthService', () => {
     expect(request.request.body).toEqual(registerRequest);
     request.flush(authResponse);
 
-    expect(localStorage.getItem('expense.auth')).toBe(JSON.stringify(authResponse));
+    expect(localStorage.getItem('task-manager.auth')).toBe(JSON.stringify(authResponse));
     expect(service.token()).toBe('registered-token');
   });
 
@@ -120,46 +120,46 @@ describe('AuthService', () => {
       accessToken: 'signed-token',
       tokenType: 'Bearer',
       expiresIn: 7200,
-      user: { id: 1, email: 'demo.expense@example.com' },
+      user: { id: 1, email: 'demo@example.com' },
     };
-    localStorage.setItem('expense.auth', JSON.stringify(authResponse));
+    localStorage.setItem('task-manager.auth', JSON.stringify(authResponse));
 
     service.logout();
 
-    expect(localStorage.getItem('expense.auth')).toBeNull();
+    expect(localStorage.getItem('task-manager.auth')).toBeNull();
     expect(service.token()).toBeNull();
     expect(service.currentUser()).toBeNull();
     expect(service.isAuthenticated()).toBe(false);
   });
 
   it('clears malformed stored authentication', () => {
-    localStorage.setItem('expense.auth', '{not-json');
+    localStorage.setItem('task-manager.auth', '{not-json');
 
     expect(service.token()).toBeNull();
-    expect(localStorage.getItem('expense.auth')).toBeNull();
+    expect(localStorage.getItem('task-manager.auth')).toBeNull();
   });
 
   for (const testCase of invalidStoredAuthCases) {
     it(`clears stored authentication with ${testCase.name}`, () => {
-      localStorage.setItem('expense.auth', testCase.value);
+      localStorage.setItem('task-manager.auth', testCase.value);
 
       expect(service.isAuthenticated()).toBe(false);
-      expect(localStorage.getItem('expense.auth')).toBeNull();
+      expect(localStorage.getItem('task-manager.auth')).toBeNull();
     });
   }
 
   it('clears stored authentication with an invalid response shape', () => {
     localStorage.setItem(
-      'expense.auth',
+      'task-manager.auth',
       JSON.stringify({
         accessToken: 123,
         tokenType: 'Bearer',
         expiresIn: 7200,
-        user: { id: 1, email: 'demo.expense@example.com' },
+        user: { id: 1, email: 'demo@example.com' },
       }),
     );
 
     expect(service.token()).toBeNull();
-    expect(localStorage.getItem('expense.auth')).toBeNull();
+    expect(localStorage.getItem('task-manager.auth')).toBeNull();
   });
 });

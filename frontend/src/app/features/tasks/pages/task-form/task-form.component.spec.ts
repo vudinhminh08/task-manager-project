@@ -97,4 +97,15 @@ describe('TaskFormComponent', () => {
     request.complete();
     expect(component.submitting).toBe(false);
   });
+
+  it('redirects malformed edit routes instead of creating a task', () => {
+    routeId = 'foo';
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const component = TestBed.createComponent(TaskFormComponent).componentInstance;
+    component.ngOnInit();
+
+    expect(component.invalidRoute).toBe(true);
+    expect(service.getById).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
 });

@@ -5,7 +5,9 @@
     <article class="summary-card"><span>Cần làm</span><strong>{{ summary.todo }}</strong></article>
     <article class="summary-card"><span>Đang làm</span><strong>{{ summary.inProgress }}</strong></article>
     <article class="summary-card"><span>Hoàn thành</span><strong>{{ summary.done }}</strong></article>
-    <article class="summary-card overdue-card"><span>Quá hạn</span><strong>{{ summary.overdue }}</strong></article>
+    @if (summary.overdue > 0) {
+      <article class="summary-card overdue-card"><span>Quá hạn</span><strong>{{ summary.overdue }}</strong></article>
+    }
   </section>
   <section class="panel filters-panel" aria-labelledby="filter-title">
     <div class="section-heading"><div><p class="eyebrow">Bộ lọc</p><h2 id="filter-title">Tìm công việc</h2></div><a class="primary-link" routerLink="/tasks/new">Tạo công việc</a></div>

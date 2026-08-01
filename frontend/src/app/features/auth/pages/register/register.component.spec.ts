@@ -11,7 +11,7 @@ const authResponse: AuthResponse = {
   accessToken: 'registered-token',
   tokenType: 'Bearer',
   expiresIn: 7200,
-  user: { id: 2, email: 'new.expense@example.com' },
+  user: { id: 2, email: 'new@example.com' },
 };
 
 const duplicateEmailError: ApiError = {
@@ -62,7 +62,7 @@ describe('RegisterComponent', () => {
     expect(component.form.invalid).toBe(true);
 
     component.form.setValue({
-      email: 'new.expense@example.com',
+      email: 'new@example.com',
       password: 'Demo@2026',
     });
     expect(component.form.valid).toBe(true);
@@ -83,14 +83,14 @@ describe('RegisterComponent', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     authService.register.mockReturnValue(of(authResponse));
     component.form.setValue({
-      email: 'new.expense@example.com',
+      email: 'new@example.com',
       password: 'Demo@2026',
     });
 
     component.submit();
 
     expect(authService.register).toHaveBeenCalledWith({
-      email: 'new.expense@example.com',
+      email: 'new@example.com',
       password: 'Demo@2026',
     });
     expect(authService.login).not.toHaveBeenCalled();
@@ -158,7 +158,7 @@ describe('RegisterComponent', () => {
     const request = new Subject<AuthResponse>();
     authService.register.mockReturnValue(request);
     component.form.setValue({
-      email: 'new.expense@example.com',
+      email: 'new@example.com',
       password: 'Demo@2026',
     });
 

@@ -26,6 +26,7 @@ export class TaskFormComponent implements OnInit {
   });
 
   taskId: number | null = null;
+  invalidRoute = false;
   loading = false;
   submitting = false;
   errorMessage = '';
@@ -42,7 +43,12 @@ export class TaskFormComponent implements OnInit {
   ngOnInit(): void {
     const routeId = this.route.snapshot.paramMap.get('id');
     const id = Number(routeId);
-    this.taskId = routeId !== null && Number.isInteger(id) && id > 0 ? id : null;
+    if (routeId !== null && (!Number.isInteger(id) || id <= 0)) {
+      this.invalidRoute = true;
+      void this.router.navigate(['/dashboard']);
+      return;
+    }
+    this.taskId = routeId !== null ? id : null;
     if (this.taskId !== null) this.loadTask(this.taskId);
   }
 
