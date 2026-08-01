@@ -5,6 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
+import { TASK_CATEGORIES } from '../../task-categories';
 import { TaskPayload, TaskPriority, TaskStatus } from '../../task.models';
 import { TaskService } from '../../task.service';
 
@@ -16,6 +17,8 @@ import { TaskService } from '../../task.service';
   styleUrl: './task-form.component.css',
 })
 export class TaskFormComponent implements OnInit {
+  readonly categories = TASK_CATEGORIES;
+
   readonly form = new FormGroup({
     title: new FormControl('', {
       nonNullable: true,

@@ -5,15 +5,16 @@
 .form-page {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 2rem 1rem;
+  padding: clamp(1.25rem, 4vw, 3rem) 1rem;
   background: #f4f7fb;
 }
 .form-card {
-  width: min(100%, 680px);
+  width: min(100%, 720px);
   margin: 0 auto;
-  padding: 2rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
   box-sizing: border-box;
   border-radius: 16px;
+  border: 1px solid #e5eaf2;
   background: #fff;
   box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
 }
@@ -35,7 +36,7 @@ h1 {
 }
 form {
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 .field,
 .field-grid {
@@ -45,6 +46,7 @@ form {
 .field-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 label {
   font-weight: 600;
@@ -70,6 +72,26 @@ textarea {
   border: 1px solid #a9b3c3;
   color: inherit;
   background: #fff;
+}
+.select-shell {
+  position: relative;
+}
+.select-shell select {
+  appearance: none;
+  padding-right: 2.75rem;
+  cursor: pointer;
+}
+.select-shell::after {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid #526079;
+  border-bottom: 2px solid #526079;
+  content: '';
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
 }
 input,
 select,

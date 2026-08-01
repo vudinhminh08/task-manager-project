@@ -34,6 +34,6 @@ Native selects retain keyboard navigation and screen-reader semantics. The custo
 
 ## Verification
 
-- Component tests verify the 12 options are rendered and a selected category is included in the create payload.
+- A focused category-list test verifies the exact 12 labels, while existing form and dashboard tests continue to verify payload and filter behavior.
 - Dashboard tests verify the category filter options use the shared list.
 - `npm test -- --watch=false` and `npm run build` must pass from `frontend/`.

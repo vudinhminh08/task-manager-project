@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
 import { AuthService } from '../../../auth/auth.service';
+import { TASK_CATEGORIES } from '../../task-categories';
 import { TaskPriority, TaskStatus, Task, TaskFilters } from '../../task.models';
 import { calculateTaskSummary, isTaskOverdue, TaskSummary } from '../../task-summary';
 import { TaskService } from '../../task.service';
@@ -23,6 +24,8 @@ function localIsoDate(date = new Date()): string {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
+  readonly categories = TASK_CATEGORIES;
+
   readonly today = localIsoDate();
   readonly filters = new FormGroup({
     status: new FormControl<TaskStatus | ''>('', { nonNullable: true }),

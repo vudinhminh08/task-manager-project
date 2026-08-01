@@ -116,6 +116,26 @@ select {
   box-sizing: border-box;
   background: #fff;
 }
+.select-shell {
+  position: relative;
+}
+.select-shell select {
+  appearance: none;
+  padding-right: 2.75rem;
+  cursor: pointer;
+}
+.select-shell::after {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid #526079;
+  border-bottom: 2px solid #526079;
+  content: '';
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
 button {
   color: #fff;
   border: 0;

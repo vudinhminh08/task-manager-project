@@ -36,26 +36,37 @@
     </div>
     <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="filter-grid">
       <div class="field">
-        <label for="filter-status">Trạng thái</label
-        ><select id="filter-status" formControlName="status">
-          <option value="">Tất cả</option>
-          <option value="TODO">Cần làm</option>
-          <option value="IN_PROGRESS">Đang làm</option>
-          <option value="DONE">Hoàn thành</option>
-        </select>
+        <label for="filter-status">Trạng thái</label>
+        <div class="select-shell">
+          <select id="filter-status" formControlName="status">
+            <option value="">Tất cả</option>
+            <option value="TODO">Cần làm</option>
+            <option value="IN_PROGRESS">Đang làm</option>
+            <option value="DONE">Hoàn thành</option>
+          </select>
+        </div>
       </div>
       <div class="field">
-        <label for="filter-priority">Ưu tiên</label
-        ><select id="filter-priority" formControlName="priority">
-          <option value="">Tất cả</option>
-          <option value="LOW">Thấp</option>
-          <option value="MEDIUM">Trung bình</option>
-          <option value="HIGH">Cao</option>
-        </select>
+        <label for="filter-priority">Ưu tiên</label>
+        <div class="select-shell">
+          <select id="filter-priority" formControlName="priority">
+            <option value="">Tất cả</option>
+            <option value="LOW">Thấp</option>
+            <option value="MEDIUM">Trung bình</option>
+            <option value="HIGH">Cao</option>
+          </select>
+        </div>
       </div>
       <div class="field">
-        <label for="filter-category">Danh mục</label
-        ><input id="filter-category" formControlName="category" placeholder="Ví dụ: Công việc" />
+        <label for="filter-category">Danh mục</label>
+        <div class="select-shell">
+          <select id="filter-category" formControlName="category">
+            <option value="">Tất cả</option>
+            <option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
       </div>
       <div class="filter-actions">
         <button type="submit">Áp dụng</button

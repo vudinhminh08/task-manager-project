@@ -65,40 +65,50 @@
         <div class="field-grid">
           <div class="field">
             <label for="status">Trạng thái</label>
-            <select id="status" formControlName="status">
-              <option value="TODO">Cần làm</option>
-              <option value="IN_PROGRESS">Đang làm</option>
-              <option value="DONE">Hoàn thành</option>
-            </select>
+            <div class="select-shell">
+              <select id="status" formControlName="status">
+                <option value="TODO">Cần làm</option>
+                <option value="IN_PROGRESS">Đang làm</option>
+                <option value="DONE">Hoàn thành</option>
+              </select>
+            </div>
           </div>
           <div class="field">
             <label for="priority">Độ ưu tiên</label>
-            <select id="priority" formControlName="priority">
-              <option value="LOW">Thấp</option>
-              <option value="MEDIUM">Trung bình</option>
-              <option value="HIGH">Cao</option>
-            </select>
+            <div class="select-shell">
+              <select id="priority" formControlName="priority">
+                <option value="LOW">Thấp</option>
+                <option value="MEDIUM">Trung bình</option>
+                <option value="HIGH">Cao</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="field-grid">
           <div class="field">
             <label for="category">Danh mục</label>
-            <input
-              id="category"
-              formControlName="category"
-              maxlength="50"
-              required
-              [attr.aria-invalid]="
-                (form.controls.category.touched && form.controls.category.invalid) ||
-                !!fieldErrors['category']
-              "
-              [attr.aria-describedby]="
-                fieldErrors['category'] ||
-                (form.controls.category.touched && form.controls.category.invalid)
-                  ? 'category-error'
-                  : null
-              "
-            />
+            <div class="select-shell">
+              <select
+                id="category"
+                formControlName="category"
+                required
+                [attr.aria-invalid]="
+                  (form.controls.category.touched && form.controls.category.invalid) ||
+                  !!fieldErrors['category']
+                "
+                [attr.aria-describedby]="
+                  fieldErrors['category'] ||
+                  (form.controls.category.touched && form.controls.category.invalid)
+                    ? 'category-error'
+                    : null
+                "
+              >
+                <option value="" disabled>Chọn danh mục</option>
+                <option *ngFor="let category of categories" [value]="category">
+                  {{ category }}
+                </option>
+              </select>
+            </div>
             @if (fieldErrors['category']) {
               <small id="category-error" class="field-error">{{ fieldErrors['category'] }}</small>
             } @else if (form.controls.category.touched && form.controls.category.invalid) {

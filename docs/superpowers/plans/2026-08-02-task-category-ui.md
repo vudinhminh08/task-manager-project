@@ -14,12 +14,13 @@
 
 **Files:**
 - Create: `frontend/src/app/features/tasks/task-categories.ts`
+- Create: `frontend/src/app/features/tasks/task-categories.spec.ts`
 - Modify: `frontend/src/app/features/tasks/pages/task-form/task-form.component.spec.ts`
 - Modify: `frontend/src/app/features/tasks/pages/dashboard/dashboard.component.spec.ts`
 
 - [ ] **Step 1: Add the shared constant and tests that describe the required options**
 
-Add `TASK_CATEGORIES` with the exact 12 labels from the design spec. Add tests that query the rendered task form and dashboard for those options; the tests must initially fail because the templates do not yet render category selects.
+Add `TASK_CATEGORIES` with the exact 12 labels from the design spec. Add a focused constant test for the exact ordered list; the initial test should fail because the shared constant does not yet exist.
 
 - [ ] **Step 2: Run the focused tests and verify the expected failure**
 
@@ -30,7 +31,7 @@ cd BTL/task-manager/frontend
 npx ng test --watch=false --include='src/app/features/tasks/pages/task-form/task-form.component.spec.ts' --include='src/app/features/tasks/pages/dashboard/dashboard.component.spec.ts'
 ```
 
-Expected: the new option assertions fail because the current category controls are text inputs and the dashboard test has no category options.
+Expected: the new category-list assertion fails because the shared constant does not yet exist.
 
 ### Task 2: Implement category dropdown behavior
 
@@ -46,7 +47,7 @@ Import `TASK_CATEGORIES` and expose it as a readonly component property. Keep th
 
 - [ ] **Step 2: Replace the task form category input with a required select**
 
-Render a disabled placeholder followed by all 12 categories with `@for`. Preserve the existing `formControlName`, required validation, field error IDs, and edit-mode values.
+Render a disabled placeholder followed by all 12 categories with Angular's existing structural option loop. Preserve the existing `formControlName`, required validation, field error IDs, and edit-mode values.
 
 - [ ] **Step 3: Replace the dashboard category text filter with a select**
 
@@ -54,7 +55,7 @@ Render `Tất cả` with an empty value followed by the same 12 categories. Keep
 
 - [ ] **Step 4: Run the focused tests and verify they pass**
 
-Run the same focused command from Task 1. Expected: all focused tests pass.
+Run the full frontend test command from Task 3 after the component changes. Expected: the category-list test and existing payload/filter tests pass.
 
 ### Task 3: Refine select and form visual styling
 
@@ -82,7 +83,7 @@ npm test -- --watch=false
 npm run build
 ```
 
-Expected: 47 existing tests plus the new UI assertions pass, and Angular produces `dist/frontend/browser/index.html`.
+Expected: 48 tests pass, and Angular produces `dist/frontend/browser/index.html`.
 
 ### Task 4: Review and commit the UI change
 
