@@ -13,6 +13,10 @@
 # when that account already exists:
 #   SEED_EMAIL=you@example.com SEED_PASSWORD='your-password' deploy/seed-demo-data.sh
 #
+# Limit the number of tasks created (the default creates the full dataset):
+#   SEED_COUNT=6 SEED_EMAIL=you@example.com SEED_PASSWORD='your-password' \
+#     deploy/seed-demo-data.sh https://your-api.example.com
+#
 # Set SEED_DRY_RUN=1 to print the planned dataset without calling the API.
 
 set -euo pipefail
@@ -89,6 +93,14 @@ TASKS=(
   "Kiểm tra link production|Đã kiểm tra health endpoint|DONE|LOW|Dự án|$YESTERDAY|0"
   "Học Angular signals|Xem lại signal và computed|TODO|MEDIUM|Học tập|$IN_SEVEN_DAYS|0"
 )
+
+TOTAL_TASKS=${#TASKS[@]}
+SEED_COUNT="${SEED_COUNT:-$TOTAL_TASKS}"
+if ! [[ "$SEED_COUNT" =~ ^[1-9][0-9]*$ ]] || (( SEED_COUNT > TOTAL_TASKS )); then
+  echo "SEED_COUNT must be an integer between 1 and $TOTAL_TASKS." >&2
+  exit 2
+fi
+TASKS=("${TASKS[@]:0:SEED_COUNT}")
 
 echo "Target API: $API"
 echo "Planned tasks: ${#TASKS[@]}"
