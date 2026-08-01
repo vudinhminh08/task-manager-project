@@ -31,9 +31,6 @@ body() { sed '$d' <<<"$1"; }
 json_string() {
   sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p" <<<"$2" | head -n 1
 }
-json_bool() {
-  sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*(true|false).*/\1/p" <<<"$2" | head -n 1
-}
 json_number() {
   sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*([0-9]+).*/\1/p" <<<"$2" | head -n 1
 }
@@ -129,20 +126,18 @@ malformed_token=$(req GET /tasks 'garbage.token.value')
 check 'malformed token' 401 "$(code "$malformed_token")"
 
 echo '== task CRUD =='
-create_overdue=$(req POST /tasks "$TOKEN_A" \
+create_due_date=$(req POST /tasks "$TOKEN_A" \
   '{"title":"Write smoke plan","description":"Cover task CRUD","status":"TODO","priority":"HIGH","category":"Work","dueDate":"2000-01-01"}')
-check 'create overdue task' 201 "$(code "$create_overdue")"
-overdue_body=$(body "$create_overdue")
-TASK_A=$(json_number id "$overdue_body")
-check '  response omits userId' no "$(json_has_key userId "$overdue_body")"
-check '  derived overdue is true' true "$(json_bool overdue "$overdue_body")"
+check 'create task with dueDate' 201 "$(code "$create_due_date")"
+due_date_body=$(body "$create_due_date")
+TASK_A=$(json_number id "$due_date_body")
+check '  response omits userId' no "$(json_has_key userId "$due_date_body")"
 
 create_no_due_date=$(req POST /tasks "$TOKEN_A" \
   '{"title":"Inbox task","description":null,"status":"IN_PROGRESS","priority":"LOW","category":"Home","dueDate":null}')
 check 'create task with null dueDate' 201 "$(code "$create_no_due_date")"
 no_due_date_body=$(body "$create_no_due_date")
 check '  dueDate remains null' yes "$(json_null dueDate "$no_due_date_body")"
-check '  null dueDate is not overdue' false "$(json_bool overdue "$no_due_date_body")"
 
 list_a=$(req GET /tasks "$TOKEN_A")
 check 'list' 200 "$(code "$list_a")"
@@ -161,7 +156,6 @@ check 'update' 200 "$(code "$update_a")"
 update_a_body=$(body "$update_a")
 check '  title replaced' 'Ship smoke plan' "$(json_string title "$update_a_body")"
 check '  status replaced' DONE "$(json_string status "$update_a_body")"
-check '  derived overdue is false for DONE' false "$(json_bool overdue "$update_a_body")"
 
 echo '== filters =='
 filter_status=$(status_and_rows '/tasks?status=IN_PROGRESS' "$TOKEN_A")
@@ -199,6 +193,12 @@ invalid_enum=$(req POST /tasks "$TOKEN_A" \
 check 'invalid status enum' 400 "$(code "$invalid_enum")"
 invalid_enum_body=$(body "$invalid_enum")
 check '  invalid enum code' MALFORMED_REQUEST "$(json_string code "$invalid_enum_body")"
+
+invalid_priority=$(req POST /tasks "$TOKEN_A" \
+  '{"title":"Bad priority","description":null,"status":"TODO","priority":"URGENT","category":"Other","dueDate":null}')
+check 'invalid priority enum' 400 "$(code "$invalid_priority")"
+invalid_priority_body=$(body "$invalid_priority")
+check '  invalid priority code' MALFORMED_REQUEST "$(json_string code "$invalid_priority_body")"
 
 malformed_json=$(req POST /tasks "$TOKEN_A" '{"title":')
 check 'malformed JSON body' 400 "$(code "$malformed_json")"

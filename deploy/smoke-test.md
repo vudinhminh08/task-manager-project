@@ -30,7 +30,7 @@ check.
 - [ ] The task list initially contains only the signed-in user's tasks.
 - [ ] Create a TODO task with title, description, LOW/MEDIUM/HIGH priority, category, and a due date.
 - [ ] Create a task with `dueDate: null`; the UI leaves the due date empty.
-- [ ] `overdue` is shown only when a non-DONE task's due date has passed.
+- [ ] The frontend shows a task as overdue only when a non-DONE task's due date has passed.
 - [ ] Update changes title, description, status, priority, category, and due date.
 - [ ] Delete requires confirmation and removes the task.
 - [ ] Status, priority, and case-insensitive category filters produce the expected rows.

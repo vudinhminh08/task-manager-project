@@ -2,8 +2,8 @@
 
 Task Manager is a local Angular SPA, Spring Boot REST API, and PostgreSQL
 application for authenticated task CRUD. A task has a title, optional
-description, status, priority, category, and optional due date. The API derives
-`overdue` from the due date and current status; clients never submit that field.
+description, status, priority, category, and optional due date. The frontend
+derives its overdue presentation from the due date and current status.
 
 ## Architecture
 
@@ -92,7 +92,7 @@ Task fields:
 - `priority` — `LOW`, `MEDIUM`, or `HIGH`.
 - `category` — required string used by the category filter.
 - `dueDate` — optional ISO date (`YYYY-MM-DD`), including `null`.
-- `overdue` — derived response field; true only for an unfinished task whose due date has passed.
+- `overdue` — frontend-derived presentation state; it is not an API request or response field.
 
 | Method and path | Success | Behaviour |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ it does not publish the application or record a hosted environment.
 - [x] Task create, list, detail, update, and delete endpoints.
 - [x] Status, priority, and case-insensitive category filters with AND semantics.
 - [x] Per-user ownership enforcement and centralized error JSON.
-- [x] Optional due dates and derived overdue state.
+- [x] Optional due dates with frontend overdue presentation.
 - [ ] Browser acceptance checklist in `deploy/smoke-test.md` still needs to be run on the submitted commit.
 
 See [deploy/smoke-test.md](deploy/smoke-test.md) for the local API and browser
