@@ -5,7 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
-import { TASK_CATEGORIES } from '../../task-categories';
+import { isTaskCategory, TASK_CATEGORY_OPTIONS, taskCategoryCode } from '../../task-categories';
 import { TaskPayload, TaskPriority, TaskStatus } from '../../task.models';
 import { TaskService } from '../../task.service';
 
@@ -50,12 +50,14 @@ function parseCloneCandidate(value: unknown): TaskPayload | null {
   ) {
     return null;
   }
+  const categoryCode = taskCategoryCode(category);
+  if (!isTaskCategory(categoryCode)) return null;
   return {
     title: title.trim(),
     description: typeof description === 'string' ? description : null,
     status,
     priority,
-    category: category.trim(),
+    category: categoryCode,
     dueDate,
   };
 }
@@ -77,7 +79,7 @@ function parseCloneJson(raw: string | null): TaskPayload | null {
   styleUrl: './task-form.component.css',
 })
 export class TaskFormComponent implements OnInit {
-  readonly categories = TASK_CATEGORIES;
+  readonly categoryOptions = TASK_CATEGORY_OPTIONS;
 
   readonly form = new FormGroup({
     title: new FormControl('', {
@@ -144,7 +146,7 @@ export class TaskFormComponent implements OnInit {
       description: value.description.trim() || null,
       status: value.status,
       priority: value.priority,
-      category: value.category.trim(),
+      category: taskCategoryCode(value.category),
       dueDate: value.dueDate || null,
     };
     this.submitting = true;
@@ -173,7 +175,7 @@ export class TaskFormComponent implements OnInit {
             description: task.description ?? '',
             status: task.status,
             priority: task.priority,
-            category: task.category,
+            category: taskCategoryCode(task.category),
             dueDate: task.dueDate ?? '',
           }),
         error: (error: HttpErrorResponse) => this.captureError(error, 'Không thể tải công việc'),

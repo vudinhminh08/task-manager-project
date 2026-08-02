@@ -33,7 +33,7 @@ check.
 - [ ] The frontend shows a task as overdue only when a non-DONE task's due date has passed.
 - [ ] Update changes title, description, status, priority, category, and due date.
 - [ ] Delete requires confirmation and removes the task.
-- [ ] Status, priority, and case-insensitive category filters produce the expected rows.
+- [ ] Status, priority, and category-code filters (for example `category=STUDY`) produce the expected rows.
 - [ ] Combining filters applies AND semantics.
 - [ ] User B cannot view, update, or delete User A's task.
 - [ ] Blank title and invalid enum values show validation feedback.

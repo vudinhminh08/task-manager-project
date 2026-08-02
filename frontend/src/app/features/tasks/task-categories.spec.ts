@@ -1,20 +1,31 @@
-import { TASK_CATEGORIES } from './task-categories';
+import {
+  TASK_CATEGORIES,
+  TASK_CATEGORY_OPTIONS,
+  taskCategoryCode,
+  taskCategoryLabel,
+} from './task-categories';
 
 describe('Task categories', () => {
-  it('keeps exactly 12 predefined labels including Khác', () => {
+  it('keeps exactly 12 predefined codes including OTHER', () => {
     expect(TASK_CATEGORIES).toEqual([
-      'Học tập',
-      'Công việc',
-      'Cá nhân',
-      'Gia đình',
-      'Sức khỏe',
-      'Tài chính',
-      'Mua sắm',
-      'Dự án',
-      'Kế hoạch',
-      'Việc nhà',
-      'Giải trí',
-      'Khác',
+      'STUDY',
+      'WORK',
+      'PERSONAL',
+      'FAMILY',
+      'HEALTH',
+      'FINANCE',
+      'SHOPPING',
+      'PROJECT',
+      'PLANNING',
+      'HOME',
+      'ENTERTAINMENT',
+      'OTHER',
     ]);
+  });
+
+  it('keeps Vietnamese labels in the frontend only', () => {
+    expect(TASK_CATEGORY_OPTIONS[0]).toEqual({ value: 'STUDY', label: 'Học tập' });
+    expect(taskCategoryLabel('STUDY')).toBe('Học tập');
+    expect(taskCategoryCode('Học tập')).toBe('STUDY');
   });
 });

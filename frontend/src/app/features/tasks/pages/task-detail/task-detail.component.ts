@@ -7,6 +7,7 @@ import { ApiError } from '../../../../core/models/api-error';
 import { Task, TaskPriority, TaskStatus } from '../../task.models';
 import { isTaskOverdue } from '../../task-summary';
 import { TaskService } from '../../task.service';
+import { taskCategoryLabel } from '../../task-categories';
 
 function localIsoDate(date = new Date()): string {
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -21,6 +22,7 @@ function localIsoDate(date = new Date()): string {
   styleUrl: './task-detail.component.css',
 })
 export class TaskDetailComponent implements OnInit {
+  readonly categoryLabel = taskCategoryLabel;
   task: Task | null = null;
   loading = false;
   errorMessage = '';

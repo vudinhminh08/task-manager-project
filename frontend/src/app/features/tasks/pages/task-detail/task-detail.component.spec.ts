@@ -15,7 +15,7 @@ const task: Task = {
   description: null,
   status: 'IN_PROGRESS',
   priority: 'HIGH',
-  category: 'Công việc',
+  category: 'WORK',
   dueDate: '2026-07-30',
   pinned: false,
   createdAt: '2026-07-29T08:00:00Z',

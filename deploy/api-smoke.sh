@@ -127,14 +127,14 @@ check 'malformed token' 401 "$(code "$malformed_token")"
 
 echo '== task CRUD =='
 create_due_date=$(req POST /tasks "$TOKEN_A" \
-  '{"title":"Write smoke plan","description":"Cover task CRUD","status":"TODO","priority":"HIGH","category":"Work","dueDate":"2000-01-01"}')
+  '{"title":"Write smoke plan","description":"Cover task CRUD","status":"TODO","priority":"HIGH","category":"WORK","dueDate":"2000-01-01"}')
 check 'create task with dueDate' 201 "$(code "$create_due_date")"
 due_date_body=$(body "$create_due_date")
 TASK_A=$(json_number id "$due_date_body")
 check '  response omits userId' no "$(json_has_key userId "$due_date_body")"
 
 create_no_due_date=$(req POST /tasks "$TOKEN_A" \
-  '{"title":"Inbox task","description":null,"status":"IN_PROGRESS","priority":"LOW","category":"Home","dueDate":null}')
+  '{"title":"Inbox task","description":null,"status":"IN_PROGRESS","priority":"LOW","category":"HOME","dueDate":null}')
 check 'create task with null dueDate' 201 "$(code "$create_no_due_date")"
 no_due_date_body=$(body "$create_no_due_date")
 check '  dueDate remains null' yes "$(json_null dueDate "$no_due_date_body")"
@@ -151,7 +151,7 @@ detail_a_body=$(body "$detail_a")
 check '  detail title' 'Write smoke plan' "$(json_string title "$detail_a_body")"
 
 update_a=$(req PUT "/tasks/$TASK_A" "$TOKEN_A" \
-  '{"title":"Ship smoke plan","description":"Updated task","status":"DONE","priority":"MEDIUM","category":"Work","dueDate":"2099-01-01"}')
+  '{"title":"Ship smoke plan","description":"Updated task","status":"DONE","priority":"MEDIUM","category":"WORK","dueDate":"2099-01-01"}')
 check 'update' 200 "$(code "$update_a")"
 update_a_body=$(body "$update_a")
 check '  title replaced' 'Ship smoke plan' "$(json_string title "$update_a_body")"
@@ -162,7 +162,7 @@ filter_status=$(status_and_rows '/tasks?status=IN_PROGRESS' "$TOKEN_A")
 check 'status filter' '200:1' "$filter_status"
 filter_priority=$(status_and_rows '/tasks?priority=MEDIUM' "$TOKEN_A")
 check 'priority filter' '200:1' "$filter_priority"
-filter_category=$(status_and_rows '/tasks?category=home' "$TOKEN_A")
+filter_category=$(status_and_rows '/tasks?category=HOME' "$TOKEN_A")
 check 'case-insensitive category filter' '200:1' "$filter_category"
 filter_and=$(status_and_rows '/tasks?status=IN_PROGRESS&priority=LOW&category=HOME' "$TOKEN_A")
 check 'status, priority, category combine as AND' '200:1' "$filter_and"
@@ -175,7 +175,7 @@ check "B reads A's task" 404 "$(code "$b_detail")"
 b_detail_body=$(body "$b_detail")
 check '  code' TASK_NOT_FOUND "$(json_string code "$b_detail_body")"
 b_update=$(req PUT "/tasks/$TASK_A" "$TOKEN_B" \
-  '{"title":"Should fail","description":null,"status":"TODO","priority":"LOW","category":"Other","dueDate":null}')
+  '{"title":"Should fail","description":null,"status":"TODO","priority":"LOW","category":"OTHER","dueDate":null}')
 check "B updates A's task" 404 "$(code "$b_update")"
 b_delete=$(req DELETE "/tasks/$TASK_A" "$TOKEN_B")
 check "B deletes A's task" 404 "$(code "$b_delete")"
@@ -183,19 +183,19 @@ check "B's list is empty" '200:0' "$(status_and_rows /tasks "$TOKEN_B")"
 
 echo '== error contract =='
 blank_title=$(req POST /tasks "$TOKEN_A" \
-  '{"title":"   ","description":null,"status":"TODO","priority":"LOW","category":"Other","dueDate":null}')
+  '{"title":"   ","description":null,"status":"TODO","priority":"LOW","category":"OTHER","dueDate":null}')
 check 'blank title' 400 "$(code "$blank_title")"
 blank_title_body=$(body "$blank_title")
 check '  blank title code' VALIDATION_ERROR "$(json_string code "$blank_title_body")"
 
 invalid_enum=$(req POST /tasks "$TOKEN_A" \
-  '{"title":"Bad enum","description":null,"status":"BLOCKED","priority":"LOW","category":"Other","dueDate":null}')
+  '{"title":"Bad enum","description":null,"status":"BLOCKED","priority":"LOW","category":"OTHER","dueDate":null}')
 check 'invalid status enum' 400 "$(code "$invalid_enum")"
 invalid_enum_body=$(body "$invalid_enum")
 check '  invalid enum code' MALFORMED_REQUEST "$(json_string code "$invalid_enum_body")"
 
 invalid_priority=$(req POST /tasks "$TOKEN_A" \
-  '{"title":"Bad priority","description":null,"status":"TODO","priority":"URGENT","category":"Other","dueDate":null}')
+  '{"title":"Bad priority","description":null,"status":"TODO","priority":"URGENT","category":"OTHER","dueDate":null}')
 check 'invalid priority enum' 400 "$(code "$invalid_priority")"
 invalid_priority_body=$(body "$invalid_priority")
 check '  invalid priority code' MALFORMED_REQUEST "$(json_string code "$invalid_priority_body")"

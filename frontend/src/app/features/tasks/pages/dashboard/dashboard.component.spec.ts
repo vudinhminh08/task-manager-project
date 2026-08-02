@@ -13,7 +13,7 @@ const todo: Task = {
   description: null,
   status: 'TODO',
   priority: 'HIGH',
-  category: 'Cá nhân',
+  category: 'PERSONAL',
   dueDate: '2026-07-30',
   pinned: false,
   createdAt: '2026-07-30T08:00:00Z',
@@ -51,12 +51,12 @@ describe('Task DashboardComponent', () => {
 
   it('loads tasks, calculates status and overdue summary, and normalizes filters', () => {
     const component = TestBed.createComponent(DashboardComponent).componentInstance;
-    component.filters.setValue({ status: 'TODO', priority: 'HIGH', category: ' Cá nhân ' });
+    component.filters.setValue({ status: 'TODO', priority: 'HIGH', category: ' PERSONAL ' });
     component.applyFilters();
     expect(service.list).toHaveBeenCalledWith({
       status: 'TODO',
       priority: 'HIGH',
-      category: 'Cá nhân',
+      category: 'PERSONAL',
     });
     expect(component.summary.total).toBe(2);
     expect(component.summary.overdue).toBe(1);
@@ -140,7 +140,7 @@ describe('Task DashboardComponent', () => {
       description: null,
       status: 'TODO',
       priority: 'HIGH',
-      category: 'Cá nhân',
+      category: 'PERSONAL',
       dueDate: '2026-07-30',
     };
     expect(JSON.parse(extras.queryParams['clone'])).toEqual(expected);
@@ -203,6 +203,7 @@ describe('Task DashboardComponent', () => {
     expect(card.querySelector('.card-info')).toBeTruthy();
     expect(card.querySelector('.card-info .card-category')).toBeTruthy();
     expect(card.querySelector('.card-info .card-due')).toBeTruthy();
+    expect(card.textContent).toContain('Cá nhân');
     expect(card.querySelector('.card-info .priority')).toBeNull();
     expect(card.querySelector('.card-header-actions .priority')).toBeTruthy();
     expect(card.querySelector('.card-heading .badge')).toBeNull();

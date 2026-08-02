@@ -12,7 +12,7 @@ const existing: Task = {
   description: null,
   status: 'IN_PROGRESS',
   priority: 'HIGH',
-  category: 'Công việc',
+  category: 'WORK',
   dueDate: '2026-08-02',
   pinned: false,
   createdAt: '2026-07-30T08:00:00Z',
@@ -54,7 +54,7 @@ describe('TaskFormComponent', () => {
       description: '  Ghi chú  ',
       status: 'TODO',
       priority: 'MEDIUM',
-      category: '  Công việc  ',
+      category: '  WORK  ',
       dueDate: '',
     });
   }
@@ -81,7 +81,7 @@ describe('TaskFormComponent', () => {
       description: null,
       status: 'TODO',
       priority: 'MEDIUM',
-      category: 'Công việc',
+      category: 'WORK',
       dueDate: null,
     });
     expect(navigate).toHaveBeenCalledWith(['/dashboard']);
@@ -147,7 +147,7 @@ describe('TaskFormComponent', () => {
       description: 'Ghi chú',
       status: 'IN_PROGRESS',
       priority: 'HIGH',
-      category: 'Công việc',
+      category: 'WORK',
       dueDate: '2026-08-02',
     });
     const component = TestBed.createComponent(TaskFormComponent).componentInstance;
@@ -160,7 +160,7 @@ describe('TaskFormComponent', () => {
       description: 'Ghi chú',
       status: 'IN_PROGRESS',
       priority: 'HIGH',
-      category: 'Công việc',
+      category: 'WORK',
       dueDate: '2026-08-02',
     });
     expect(service.getById).not.toHaveBeenCalled();

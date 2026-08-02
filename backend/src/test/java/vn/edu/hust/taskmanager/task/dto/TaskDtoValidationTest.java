@@ -28,7 +28,7 @@ class TaskDtoValidationTest {
     void acceptsValidTaskIncludingPastDueDateAndOptionalDescription() {
         TaskRequest request = new TaskRequest(
                 "  Finish report  ", "Details", TaskStatus.TODO,
-                TaskPriority.HIGH, " Work ", LocalDate.now().minusDays(1));
+                TaskPriority.HIGH, " WORK ", LocalDate.now().minusDays(1));
 
         assertThat(validator.validate(request)).isEmpty();
     }
@@ -49,6 +49,17 @@ class TaskDtoValidationTest {
 
         assertThat(violationPaths(request))
                 .containsExactlyInAnyOrder("title", "description", "category");
+    }
+
+    @Test
+    void rejectsVietnameseCategoryLabelsAndAcceptsStableCodes() {
+        TaskRequest legacy = new TaskRequest(
+                "Title", null, TaskStatus.TODO, TaskPriority.MEDIUM, "Học tập", null);
+        TaskRequest code = new TaskRequest(
+                "Title", null, TaskStatus.TODO, TaskPriority.MEDIUM, "STUDY", null);
+
+        assertThat(violationPaths(legacy)).contains("category");
+        assertThat(violationPaths(code)).doesNotContain("category");
     }
 
     @Test

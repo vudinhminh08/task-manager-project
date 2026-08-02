@@ -102,8 +102,8 @@
         <div class="select-shell">
           <select id="filter-category" formControlName="category">
             <option value="">Tất cả</option>
-            <option *ngFor="let category of categories" [value]="category">
-              {{ category }}
+            <option *ngFor="let option of categoryOptions" [value]="option.value">
+              {{ option.label }}
             </option>
           </select>
         </div>
@@ -258,7 +258,7 @@
                   <div class="task-title-cell">
                     <a class="task-title" [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
                     <div class="task-meta">
-                      <span>{{ task.category }}</span>
+                      <span>{{ categoryLabel(task.category) }}</span>
                     </div>
                   </div>
                 </td>
@@ -358,7 +358,7 @@
                   <h3>{{ task.title }}</h3>
                 </a>
                 <div class="card-info">
-                  <span class="card-category">{{ task.category }}</span>
+                  <span class="card-category">{{ categoryLabel(task.category) }}</span>
                   <span class="card-due">
                     <span [class.task-due-overdue]="isOverdue(task)">
                       {{ task.dueDate ? (task.dueDate | date: 'dd/MM/yyyy') : 'Không có hạn' }}

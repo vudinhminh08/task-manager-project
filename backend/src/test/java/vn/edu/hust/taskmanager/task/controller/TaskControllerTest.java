@@ -47,20 +47,20 @@ class TaskControllerTest {
 
     @Test
     void listsWithStatusPriorityCategoryFiltersAndOwner() throws Exception {
-        when(service.list(42L, TaskStatus.DONE, TaskPriority.HIGH, "Work"))
+        when(service.list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK"))
                 .thenReturn(List.of(response()));
-        mockMvc.perform(get("/api/tasks").param("status", "DONE").param("priority", "HIGH").param("category", "Work"))
+        mockMvc.perform(get("/api/tasks").param("status", "DONE").param("priority", "HIGH").param("category", "WORK"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(9))
                 .andExpect(jsonPath("$[0].userId").doesNotExist());
-        verify(service).list(42L, TaskStatus.DONE, TaskPriority.HIGH, "Work");
+        verify(service).list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK");
     }
 
     @Test
     void createsWithLocation() throws Exception {
-        TaskRequest request = new TaskRequest("Title", "Description", TaskStatus.TODO, TaskPriority.MEDIUM, "Work", LocalDate.of(2026, 7, 30));
+        TaskRequest request = new TaskRequest("Title", "Description", TaskStatus.TODO, TaskPriority.MEDIUM, "WORK", LocalDate.of(2026, 7, 30));
         when(service.create(42L, request)).thenReturn(response());
         mockMvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content("""
-                {"title":"Title","description":"Description","status":"TODO","priority":"MEDIUM","category":"Work","dueDate":"2026-07-30"}
+                {"title":"Title","description":"Description","status":"TODO","priority":"MEDIUM","category":"WORK","dueDate":"2026-07-30"}
                 """))
                 .andExpect(status().isCreated()).andExpect(header().string("Location", "/api/tasks/9"));
         verify(service).create(42L, request);
@@ -107,6 +107,6 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
-    private TaskResponse response() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "Work", LocalDate.now(), null, null); }
-    private TaskResponse responseWithPin() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "Work", LocalDate.now(), true, null, null); }
+    private TaskResponse response() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "WORK", LocalDate.now(), null, null); }
+    private TaskResponse responseWithPin() { return new TaskResponse(9L, "Title", "Description", TaskStatus.DONE, TaskPriority.HIGH, "WORK", LocalDate.now(), true, null, null); }
 }

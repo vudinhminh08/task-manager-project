@@ -68,15 +68,15 @@ fi
 
 # Fields: title|description|status|priority|category|dueDate|pin
 TASKS=(
-  "Ôn tập Spring Boot|Ôn lại REST controller và validation|TODO|HIGH|Học tập|$YESTERDAY|1"
-  "Nộp bài Công nghệ web|Kiểm tra README và đường dẫn deploy|TODO|HIGH|Học tập|$TODAY|1"
-  "Đọc tài liệu PostgreSQL|Đọc phần migration và index|TODO|LOW|Học tập|$IN_SEVEN_DAYS|0"
-  "Dọn inbox email|Xử lý các email chưa đọc|TODO|LOW|Cá nhân||0"
-  "Hoàn thiện API tasks|Bổ sung kiểm thử filter và ownership|IN_PROGRESS|HIGH|Công việc|$YESTERDAY|1"
+  "Ôn tập Spring Boot|Ôn lại REST controller và validation|TODO|HIGH|STUDY|$YESTERDAY|1"
+  "Nộp bài Công nghệ web|Kiểm tra README và đường dẫn deploy|TODO|HIGH|STUDY|$TODAY|1"
+  "Đọc tài liệu PostgreSQL|Đọc phần migration và index|TODO|LOW|STUDY|$IN_SEVEN_DAYS|0"
+  "Dọn inbox email|Xử lý các email chưa đọc|TODO|LOW|PERSONAL||0"
+  "Hoàn thiện API tasks|Bổ sung kiểm thử filter và ownership|IN_PROGRESS|HIGH|WORK|$YESTERDAY|1"
   "Rà soát giao diện dashboard|Kiểm tra responsive trên màn hình nhỏ|IN_PROGRESS|MEDIUM|Dự án|$TODAY|0"
-  "Viết tài liệu demo|Chuẩn bị các bước trình bày cho thầy|IN_PROGRESS|MEDIUM|Công việc|$IN_THREE_DAYS|0"
+  "Viết tài liệu demo|Chuẩn bị các bước trình bày cho thầy|IN_PROGRESS|MEDIUM|WORK|$IN_THREE_DAYS|0"
   "Đặt lịch khám|Gọi phòng khám để xác nhận lịch|IN_PROGRESS|LOW|Sức khỏe||0"
-  "Cập nhật hồ sơ cá nhân|Đã cập nhật họ tên trong trang profile|DONE|MEDIUM|Cá nhân|$LAST_WEEK|1"
+  "Cập nhật hồ sơ cá nhân|Đã cập nhật họ tên trong trang profile|DONE|MEDIUM|PERSONAL|$LAST_WEEK|1"
   "Thiết kế database|Đã chốt bảng users và tasks|DONE|HIGH|Dự án|$LAST_MONTH|0"
   "Mua bàn phím|Đã nhận hàng và kiểm tra sản phẩm|DONE|LOW|Mua sắm|$YESTERDAY|0"
   "Gia hạn gói điện thoại|Đã thanh toán tháng này|DONE|MEDIUM|Tài chính||0"
@@ -89,9 +89,9 @@ TASKS=(
   "Mua rau quả|Mua thực phẩm cho ba ngày|TODO|LOW|Mua sắm|$TODAY|0"
   "Chuẩn bị sinh nhật|Chọn quà và viết lời chúc|IN_PROGRESS|HIGH|Gia đình|$IN_SEVEN_DAYS|0"
   "Việc khác cần xử lý|Một ghi chú không thuộc nhóm cố định|TODO|MEDIUM|Khác||0"
-  "Backup mã nguồn|Lưu bản sao trước khi deploy|DONE|HIGH|Công việc|$LAST_WEEK|0"
+  "Backup mã nguồn|Lưu bản sao trước khi deploy|DONE|HIGH|WORK|$LAST_WEEK|0"
   "Kiểm tra link production|Đã kiểm tra health endpoint|DONE|LOW|Dự án|$YESTERDAY|0"
-  "Học Angular signals|Xem lại signal và computed|TODO|MEDIUM|Học tập|$IN_SEVEN_DAYS|0"
+  "Học Angular signals|Xem lại signal và computed|TODO|MEDIUM|STUDY|$IN_SEVEN_DAYS|0"
 )
 
 TOTAL_TASKS=${#TASKS[@]}

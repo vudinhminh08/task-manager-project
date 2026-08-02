@@ -7,6 +7,7 @@ import { ApiError } from '../../../../core/models/api-error';
 import { ToastService } from '../../../../core/toast/toast.service';
 import { Task, TaskPriority, TaskStatus } from '../../../tasks/task.models';
 import { TaskService } from '../../../tasks/task.service';
+import { taskCategoryLabel } from '../../../tasks/task-categories';
 import { calculateStatistics, getOverdueTasks, TaskStatistic } from './statistics';
 
 function localIsoDate(date = new Date()): string {
@@ -22,6 +23,7 @@ function localIsoDate(date = new Date()): string {
   styleUrl: './statistics.component.css',
 })
 export class StatisticsComponent implements OnInit {
+  readonly categoryLabel = taskCategoryLabel;
   readonly today = localIsoDate();
   tasks: Task[] = [];
   metrics: TaskStatistic[] = [];

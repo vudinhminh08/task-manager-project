@@ -36,11 +36,11 @@ class TaskServiceTest {
 
     @Test
     void listsUsingAuthenticatedOwnerAndNormalizedOptionalCategory() {
-        when(taskRepository.findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "Work"))
-                .thenReturn(List.of(task(7L, user(42L), "Title", "Work")));
-        assertThat(service.list(42L, TaskStatus.TODO, TaskPriority.HIGH, "  Work "))
+        when(taskRepository.findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "WORK"))
+                .thenReturn(List.of(task(7L, user(42L), "Title", "WORK")));
+        assertThat(service.list(42L, TaskStatus.TODO, TaskPriority.HIGH, "  WORK "))
                 .extracting(TaskResponse::id).containsExactly(7L);
-        verify(taskRepository).findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "Work");
+        verify(taskRepository).findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "WORK");
     }
 
     @Test
@@ -68,18 +68,18 @@ class TaskServiceTest {
 
     @Test
     void updatesOnlyOwnedTaskAndDeletesIt() {
-        Task existing = task(7L, user(42L), "Old", "Work");
+        Task existing = task(7L, user(42L), "Old", "WORK");
         when(taskRepository.findByIdAndUserId(7L, 42L)).thenReturn(Optional.of(existing));
         when(taskRepository.save(existing)).thenReturn(existing);
 
         TaskResponse updated = service.update(42L, 7L,
                 new TaskRequest(" New ", " details ", TaskStatus.IN_PROGRESS,
-                        TaskPriority.MEDIUM, " Home ", LocalDate.now().minusDays(2)));
+                        TaskPriority.MEDIUM, " HOME ", LocalDate.now().minusDays(2)));
 
         assertThat(updated.title()).isEqualTo("New");
         assertThat(updated.status()).isEqualTo(TaskStatus.IN_PROGRESS);
         assertThat(updated.priority()).isEqualTo(TaskPriority.MEDIUM);
-        assertThat(updated.category()).isEqualTo("Home");
+        assertThat(updated.category()).isEqualTo("HOME");
 
         service.delete(42L, 7L);
         verify(taskRepository).delete(existing);
@@ -87,7 +87,7 @@ class TaskServiceTest {
 
     @Test
     void patchesStatusAndPinOnlyOnOwnedTask() {
-        Task existing = task(7L, user(42L), "Old", "Work");
+        Task existing = task(7L, user(42L), "Old", "WORK");
         when(taskRepository.findByIdAndUserId(7L, 42L)).thenReturn(Optional.of(existing));
         when(taskRepository.save(existing)).thenReturn(existing);
 
@@ -97,7 +97,7 @@ class TaskServiceTest {
         assertThat(statusResponse.status()).isEqualTo(TaskStatus.DONE);
         assertThat(pinResponse.pinned()).isTrue();
         assertThat(existing.getTitle()).isEqualTo("Old");
-        assertThat(existing.getCategory()).isEqualTo("Work");
+        assertThat(existing.getCategory()).isEqualTo("WORK");
     }
 
     @Test

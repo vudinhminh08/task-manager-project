@@ -138,7 +138,7 @@
                 <div class="overdue-item-main">
                   <a class="overdue-title" [routerLink]="['/tasks', task.id]">{{ task.title }}</a>
                   <div class="overdue-item-tags">
-                    <span class="overdue-category">{{ task.category }}</span>
+                    <span class="overdue-category">{{ categoryLabel(task.category) }}</span>
                     <time class="overdue-due" [attr.datetime]="task.dueDate">
                       Hạn: {{ task.dueDate | date: 'dd/MM/yyyy' }}
                     </time>

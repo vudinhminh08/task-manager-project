@@ -6,7 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
 import { AuthService } from '../../../auth/auth.service';
-import { TASK_CATEGORIES } from '../../task-categories';
+import { TASK_CATEGORY_OPTIONS, taskCategoryCode, taskCategoryLabel } from '../../task-categories';
 import { TaskPriority, TaskStatus, Task, TaskFilters, TaskPayload } from '../../task.models';
 import { calculateTaskSummary, isTaskOverdue, TaskSummary } from '../../task-summary';
 import { TaskService } from '../../task.service';
@@ -25,7 +25,8 @@ function localIsoDate(date = new Date()): string {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
-  readonly categories = TASK_CATEGORIES;
+  readonly categoryOptions = TASK_CATEGORY_OPTIONS;
+  readonly categoryLabel = taskCategoryLabel;
 
   readonly today = localIsoDate();
   readonly filters = new FormGroup({
@@ -221,7 +222,7 @@ export class DashboardComponent implements OnInit {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      category: task.category,
+      category: taskCategoryCode(task.category),
       dueDate: task.dueDate,
     };
     void this.router.navigate(['/tasks/new'], {
@@ -240,7 +241,7 @@ export class DashboardComponent implements OnInit {
     const filters: TaskFilters = {};
     if (value.status) filters.status = value.status;
     if (value.priority) filters.priority = value.priority;
-    if (value.category.trim()) filters.category = value.category.trim();
+    if (value.category.trim()) filters.category = taskCategoryCode(value.category);
     return filters;
   }
 

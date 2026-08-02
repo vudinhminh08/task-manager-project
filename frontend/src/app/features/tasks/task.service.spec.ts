@@ -11,7 +11,7 @@ const fixture: Task = {
   description: null,
   status: 'TODO',
   priority: 'MEDIUM',
-  category: 'Cá nhân',
+  category: 'PERSONAL',
   dueDate: null,
   pinned: false,
   createdAt: '2026-07-31T08:00:00Z',

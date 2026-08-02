@@ -31,7 +31,11 @@ CREATE TABLE IF NOT EXISTS tasks (
     CONSTRAINT ck_tasks_category
         CHECK (
             category = btrim(category)
-            AND char_length(category) BETWEEN 1 AND 50
+            AND category IN (
+                'STUDY', 'WORK', 'PERSONAL', 'FAMILY', 'HEALTH',
+                'FINANCE', 'SHOPPING', 'PROJECT', 'PLANNING',
+                'HOME', 'ENTERTAINMENT', 'OTHER'
+            )
         )
 );
 
