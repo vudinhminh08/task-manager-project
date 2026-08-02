@@ -1,4 +1,4 @@
-import { Task, TaskPriority, TaskStatus } from '../../../tasks/task.models';
+import { Task, TaskPriority, TaskStatus, TaskStatisticsResponse } from '../../../tasks/task.models';
 import { isTaskOverdue } from '../../../tasks/task-summary';
 
 export type StatisticsKey = TaskStatus | 'OVERDUE';
@@ -34,7 +34,18 @@ export function calculateStatistics(tasks: readonly Task[], today: string): Task
     DONE: tasks.filter((task) => task.status === 'DONE').length,
     OVERDUE: tasks.filter((task) => isTaskOverdue(task, today)).length,
   };
-  const total = tasks.length;
+  return calculateStatisticsFromCounts({
+    todo: counts.TODO,
+    inProgress: counts.IN_PROGRESS,
+    done: counts.DONE,
+    overdue: counts.OVERDUE,
+  });
+}
+
+export function calculateStatisticsFromCounts(
+  counts: Pick<TaskStatisticsResponse, 'todo' | 'inProgress' | 'done' | 'overdue'>,
+): TaskStatistic[] {
+  const total = counts.todo + counts.inProgress + counts.done;
   const labels: Record<StatisticsKey, string> = {
     TODO: 'Cần làm',
     IN_PROGRESS: 'Đang làm',
@@ -42,10 +53,16 @@ export function calculateStatistics(tasks: readonly Task[], today: string): Task
     OVERDUE: 'Quá hạn',
   };
 
-  return (Object.keys(counts) as StatisticsKey[]).map((key) => ({
+  const values: Record<StatisticsKey, number> = {
+    TODO: counts.todo,
+    IN_PROGRESS: counts.inProgress,
+    DONE: counts.done,
+    OVERDUE: counts.overdue,
+  };
+  return (Object.keys(values) as StatisticsKey[]).map((key) => ({
     key,
     label: labels[key],
-    count: counts[key],
-    percentage: total === 0 ? 0 : Math.round((counts[key] / total) * 100),
+    count: values[key],
+    percentage: total === 0 ? 0 : Math.round((values[key] / total) * 100),
   }));
 }

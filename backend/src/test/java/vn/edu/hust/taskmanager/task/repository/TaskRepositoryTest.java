@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import vn.edu.hust.taskmanager.auth.model.User;
 import vn.edu.hust.taskmanager.auth.repository.UserRepository;
@@ -32,7 +33,7 @@ class TaskRepositoryTest {
         taskRepository.saveAndFlush(new Task(other, "Other task", null,
                 TaskStatus.TODO, TaskPriority.LOW, "WORK", LocalDate.now()));
 
-        assertThat(taskRepository.findFiltered(owner.getId(), null, null, null))
+        assertThat(taskRepository.findFiltered(owner.getId(), null, null, null, PageRequest.of(0, 10)).getContent())
                 .containsExactly(ownerTask);
     }
 
@@ -48,7 +49,7 @@ class TaskRepositoryTest {
         taskRepository.saveAndFlush(new Task(owner, "Other category", null,
                 TaskStatus.DONE, TaskPriority.HIGH, "HOME", LocalDate.now()));
 
-        assertThat(taskRepository.findFiltered(owner.getId(), TaskStatus.DONE, TaskPriority.HIGH, "work"))
+        assertThat(taskRepository.findFiltered(owner.getId(), TaskStatus.DONE, TaskPriority.HIGH, "work", PageRequest.of(0, 10)).getContent())
                 .containsExactly(matching);
     }
 
@@ -62,9 +63,30 @@ class TaskRepositoryTest {
         Task newest = taskRepository.saveAndFlush(new Task(owner, "Newest", null,
                 TaskStatus.DONE, TaskPriority.HIGH, "STUDY", LocalDate.now()));
 
-        assertThat(taskRepository.findFiltered(owner.getId(), null, null, null))
+        assertThat(taskRepository.findFiltered(owner.getId(), null, null, null, PageRequest.of(0, 10)).getContent())
                 .extracting(Task::getId)
                 .containsExactly(newest.getId(), middle.getId(), oldest.getId());
+    }
+
+    @Test
+    void returnsRequestedPageAndTotalMetadata() {
+        User owner = userRepository.saveAndFlush(new User("owner@example.com", "hash"));
+        Task oldest = taskRepository.saveAndFlush(new Task(owner, "Oldest", null,
+                TaskStatus.TODO, TaskPriority.LOW, "WORK", LocalDate.now()));
+        Task middle = taskRepository.saveAndFlush(new Task(owner, "Middle", null,
+                TaskStatus.TODO, TaskPriority.LOW, "WORK", LocalDate.now()));
+        Task newest = taskRepository.saveAndFlush(new Task(owner, "Newest", null,
+                TaskStatus.TODO, TaskPriority.LOW, "WORK", LocalDate.now()));
+
+        var firstPage = taskRepository.findFiltered(owner.getId(), null, null, null, PageRequest.of(0, 2));
+        var secondPage = taskRepository.findFiltered(owner.getId(), null, null, null, PageRequest.of(1, 2));
+
+        assertThat(firstPage.getContent()).extracting(Task::getId)
+                .containsExactly(newest.getId(), middle.getId());
+        assertThat(secondPage.getContent()).extracting(Task::getId)
+                .containsExactly(oldest.getId());
+        assertThat(firstPage.getTotalElements()).isEqualTo(3);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
     }
 
     @Test

@@ -41,13 +41,25 @@ describe('TaskService', () => {
 
   afterEach(() => http.verify());
 
-  it('uses exact task URLs and omits absent filters', () => {
-    service.list({ status: 'TODO', priority: undefined, category: '' }).subscribe();
+  it('uses page metadata and omits absent filters', () => {
+    service.list({ status: 'TODO', priority: undefined, category: '' }, 2, 10).subscribe();
     const request = http.expectOne((candidate) => candidate.url === url);
     expect(request.request.method).toBe('GET');
-    expect(request.request.params.keys()).toEqual(['status']);
+    expect(request.request.params.keys()).toEqual(['page', 'size', 'status']);
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('10');
     expect(request.request.params.get('status')).toBe('TODO');
-    request.flush([fixture]);
+    request.flush({ items: [fixture], page: 2, size: 10, totalItems: 11, totalPages: 2 });
+
+    service.pinned().subscribe();
+    const pinned = http.expectOne(`${url}/pinned`);
+    expect(pinned.request.method).toBe('GET');
+    pinned.flush([fixture]);
+
+    service.statistics().subscribe();
+    const statistics = http.expectOne(`${url}/statistics`);
+    expect(statistics.request.method).toBe('GET');
+    statistics.flush({ todo: 1, inProgress: 0, done: 0, overdue: 1, overdueTasks: [fixture] });
 
     service.getById(4).subscribe();
     expect(http.expectOne(`${url}/4`).request.method).toBe('GET');

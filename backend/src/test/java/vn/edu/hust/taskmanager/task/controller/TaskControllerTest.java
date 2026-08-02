@@ -1,8 +1,10 @@
 package vn.edu.hust.taskmanager.task.controller;
 
 import vn.edu.hust.taskmanager.task.dto.TaskRequest;
+import vn.edu.hust.taskmanager.task.dto.TaskPageResponse;
 import vn.edu.hust.taskmanager.task.dto.TaskResponse;
 import vn.edu.hust.taskmanager.task.dto.TaskStatusUpdateRequest;
+import vn.edu.hust.taskmanager.task.dto.TaskStatisticsResponse;
 import vn.edu.hust.taskmanager.task.dto.TaskPinUpdateRequest;
 import vn.edu.hust.taskmanager.task.model.TaskPriority;
 import vn.edu.hust.taskmanager.task.model.TaskStatus;
@@ -47,12 +49,45 @@ class TaskControllerTest {
 
     @Test
     void listsWithStatusPriorityCategoryFiltersAndOwner() throws Exception {
-        when(service.list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK"))
-                .thenReturn(List.of(response()));
+        when(service.list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK", 1, 10))
+                .thenReturn(new TaskPageResponse(List.of(response()), 1, 10, 1, 1));
         mockMvc.perform(get("/api/tasks").param("status", "DONE").param("priority", "HIGH").param("category", "WORK"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(9))
-                .andExpect(jsonPath("$[0].userId").doesNotExist());
-        verify(service).list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK");
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].id").value(9))
+                .andExpect(jsonPath("$.items[0].userId").doesNotExist())
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalItems").value(1));
+        verify(service).list(42L, TaskStatus.DONE, TaskPriority.HIGH, "WORK", 1, 10);
+    }
+
+    @Test
+    void forwardsExplicitPageAndSize() throws Exception {
+        when(service.list(42L, null, null, null, 2, 5))
+                .thenReturn(new TaskPageResponse(List.of(response()), 2, 5, 6, 2));
+
+        mockMvc.perform(get("/api/tasks").param("page", "2").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(2))
+                .andExpect(jsonPath("$.size").value(5));
+
+        verify(service).list(42L, null, null, null, 2, 5);
+    }
+
+    @Test
+    void exposesPinnedAndStatisticsEndpoints() throws Exception {
+        when(service.pinned(42L)).thenReturn(List.of(responseWithPin()));
+        when(service.statistics(42L)).thenReturn(new TaskStatisticsResponse(2, 1, 3, 1, List.of(response())));
+
+        mockMvc.perform(get("/api/tasks/pinned"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pinned").value(true));
+        mockMvc.perform(get("/api/tasks/statistics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.todo").value(2))
+                .andExpect(jsonPath("$.overdueTasks[0].id").value(9));
+
+        verify(service).pinned(42L);
+        verify(service).statistics(42L);
     }
 
     @Test

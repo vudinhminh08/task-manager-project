@@ -28,6 +28,10 @@ check.
 - [ ] Registration creates two separate users; duplicate normalized email is rejected visibly.
 - [ ] Valid login succeeds; invalid credentials show a visible error.
 - [ ] The task list initially contains only the signed-in user's tasks.
+- [ ] The task list returns page metadata with 10 items per page by default;
+  pagination appears only when `totalPages > 1`.
+- [ ] Pinned tasks and statistics still include the complete user's data when
+  the main task list is paginated.
 - [ ] Create a TODO task with title, description, LOW/MEDIUM/HIGH priority, category, and a due date.
 - [ ] Create a task with `dueDate: null`; the UI leaves the due date empty.
 - [ ] The frontend shows a task as overdue only when a non-DONE task's due date has passed.

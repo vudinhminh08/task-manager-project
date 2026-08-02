@@ -143,6 +143,8 @@ list_a=$(req GET /tasks "$TOKEN_A")
 check 'list' 200 "$(code "$list_a")"
 list_a_body=$(body "$list_a")
 check '  returns both tasks' 2 "$(rows "$list_a_body")"
+check '  list page is one' 1 "$(json_number page "$list_a_body")"
+check '  list total is two' 2 "$(json_number totalItems "$list_a_body")"
 check '  list response omits userId' no "$(json_has_key userId "$list_a_body")"
 
 detail_a=$(req GET "/tasks/$TASK_A" "$TOKEN_A")
@@ -156,6 +158,15 @@ check 'update' 200 "$(code "$update_a")"
 update_a_body=$(body "$update_a")
 check '  title replaced' 'Ship smoke plan' "$(json_string title "$update_a_body")"
 check '  status replaced' DONE "$(json_string status "$update_a_body")"
+
+statistics_a=$(req GET /tasks/statistics "$TOKEN_A")
+check 'statistics endpoint' 200 "$(code "$statistics_a")"
+statistics_a_body=$(body "$statistics_a")
+check '  statistics TODO count' 0 "$(json_number todo "$statistics_a_body")"
+check '  statistics DONE count' 1 "$(json_number done "$statistics_a_body")"
+pinned_a=$(req GET /tasks/pinned "$TOKEN_A")
+check 'pinned endpoint' 200 "$(code "$pinned_a")"
+check '  no pinned tasks initially' 0 "$(rows "$(body "$pinned_a")")"
 
 echo '== filters =='
 filter_status=$(status_and_rows '/tasks?status=IN_PROGRESS' "$TOKEN_A")

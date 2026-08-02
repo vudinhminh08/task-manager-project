@@ -1,9 +1,11 @@
 package vn.edu.hust.taskmanager.task.controller;
 
 import vn.edu.hust.taskmanager.task.dto.TaskPinUpdateRequest;
+import vn.edu.hust.taskmanager.task.dto.TaskPageResponse;
 import vn.edu.hust.taskmanager.task.dto.TaskRequest;
 import vn.edu.hust.taskmanager.task.dto.TaskResponse;
 import vn.edu.hust.taskmanager.task.dto.TaskStatusUpdateRequest;
+import vn.edu.hust.taskmanager.task.dto.TaskStatisticsResponse;
 import vn.edu.hust.taskmanager.task.model.TaskPriority;
 import vn.edu.hust.taskmanager.task.model.TaskStatus;
 import vn.edu.hust.taskmanager.task.service.TaskService;
@@ -34,11 +36,23 @@ public class TaskController {
     public TaskController(TaskService taskService) { this.taskService = taskService; }
 
     @GetMapping
-    public List<TaskResponse> list(@AuthenticationPrincipal Long userId,
-                                   @RequestParam(required = false) TaskStatus status,
-                                   @RequestParam(required = false) TaskPriority priority,
-                                   @RequestParam(required = false) String category) {
-        return taskService.list(userId, status, priority, category);
+    public TaskPageResponse list(@AuthenticationPrincipal Long userId,
+                                 @RequestParam(required = false) TaskStatus status,
+                                 @RequestParam(required = false) TaskPriority priority,
+                                 @RequestParam(required = false) String category,
+                                 @RequestParam(defaultValue = "1") int page,
+                                 @RequestParam(defaultValue = "10") int size) {
+        return taskService.list(userId, status, priority, category, page, size);
+    }
+
+    @GetMapping("/pinned")
+    public List<TaskResponse> pinned(@AuthenticationPrincipal Long userId) {
+        return taskService.pinned(userId);
+    }
+
+    @GetMapping("/statistics")
+    public TaskStatisticsResponse statistics(@AuthenticationPrincipal Long userId) {
+        return taskService.statistics(userId);
     }
 
     @GetMapping("/{id}")

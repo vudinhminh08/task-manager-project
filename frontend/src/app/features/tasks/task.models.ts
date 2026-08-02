@@ -14,6 +14,22 @@ export interface Task {
   updatedAt: string;
 }
 
+export interface TaskPage {
+  items: Task[];
+  page: number;
+  size: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface TaskStatisticsResponse {
+  todo: number;
+  inProgress: number;
+  done: number;
+  overdue: number;
+  overdueTasks: Task[];
+}
+
 export interface TaskPayload {
   title: string;
   description: string | null;

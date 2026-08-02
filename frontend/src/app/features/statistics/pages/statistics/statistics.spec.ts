@@ -68,10 +68,10 @@ describe('statistics helpers', () => {
 });
 
 describe('StatisticsComponent', () => {
-  const service = { list: vi.fn(), updateStatus: vi.fn() };
+  const service = { statistics: vi.fn(), updateStatus: vi.fn() };
 
   beforeEach(async () => {
-    service.list.mockReset();
+    service.statistics.mockReset();
     service.updateStatus.mockReset();
     await TestBed.configureTestingModule({
       imports: [StatisticsComponent],
@@ -79,11 +79,13 @@ describe('StatisticsComponent', () => {
     }).compileComponents();
   });
 
-  it('loads the unfiltered task list and exposes four cards', () => {
-    service.list.mockReturnValue(of([task({ id: 1 })]));
+  it('loads unpaginated statistics and exposes four cards', () => {
+    service.statistics.mockReturnValue(
+      of({ todo: 1, inProgress: 0, done: 0, overdue: 0, overdueTasks: [] }),
+    );
     const fixture = TestBed.createComponent(StatisticsComponent);
     fixture.detectChanges();
-    expect(service.list).toHaveBeenCalledWith();
+    expect(service.statistics).toHaveBeenCalledWith();
     expect(fixture.componentInstance.metrics).toHaveLength(4);
     expect(fixture.nativeElement.querySelectorAll('.metric-card')).toHaveLength(4);
     expect(fixture.nativeElement.querySelectorAll('.bar-column')).toHaveLength(3);
@@ -91,7 +93,9 @@ describe('StatisticsComponent', () => {
   });
 
   it('renders an empty overdue panel when there are no overdue tasks', () => {
-    service.list.mockReturnValue(of([]));
+    service.statistics.mockReturnValue(
+      of({ todo: 0, inProgress: 0, done: 0, overdue: 0, overdueTasks: [] }),
+    );
     const fixture = TestBed.createComponent(StatisticsComponent);
     fixture.detectChanges();
 
@@ -102,7 +106,11 @@ describe('StatisticsComponent', () => {
 
   it('reloads statistics after completing an overdue task', () => {
     const overdue = task({ id: 9, dueDate: '2026-07-31', status: 'TODO' });
-    service.list.mockReturnValueOnce(of([overdue])).mockReturnValueOnce(of([]));
+    service.statistics
+      .mockReturnValueOnce(
+        of({ todo: 1, inProgress: 0, done: 0, overdue: 1, overdueTasks: [overdue] }),
+      )
+      .mockReturnValueOnce(of({ todo: 0, inProgress: 0, done: 1, overdue: 0, overdueTasks: [] }));
     service.updateStatus.mockReturnValue(of({ ...overdue, status: 'DONE' }));
     const fixture = TestBed.createComponent(StatisticsComponent);
     fixture.detectChanges();
@@ -112,12 +120,12 @@ describe('StatisticsComponent', () => {
     } as unknown as Event);
 
     expect(service.updateStatus).toHaveBeenCalledWith(9, 'DONE');
-    expect(service.list).toHaveBeenCalledTimes(2);
+    expect(service.statistics).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance.overdueTasks).toEqual([]);
   });
 
   it('exposes a retryable API error', () => {
-    service.list.mockReturnValue(
+    service.statistics.mockReturnValue(
       throwError(
         () => new HttpErrorResponse({ status: 500, error: { message: 'Không tải được số liệu' } }),
       ),

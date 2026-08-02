@@ -98,7 +98,9 @@ Task fields:
 | --- | --- | --- |
 | `POST /api/auth/register` | `201` | Creates an account and returns a token |
 | `POST /api/auth/login` | `200` | Returns a token |
-| `GET /api/tasks` | `200` | Current user's tasks |
+| `GET /api/tasks` | `200` | Current user's paginated tasks |
+| `GET /api/tasks/pinned` | `200` | All pinned tasks owned by the current user |
+| `GET /api/tasks/statistics` | `200` | Complete status counts and overdue tasks |
 | `GET /api/tasks/{id}` | `200` | One task owned by the current user |
 | `POST /api/tasks` | `201` | Creates a task and sets `Location` |
 | `PUT /api/tasks/{id}` | `200` | Replaces the editable task fields |
@@ -106,8 +108,13 @@ Task fields:
 | `GET /api/health` | `200` | `{"status":"UP"}`, public |
 
 `GET /api/tasks` accepts optional `status`, `priority`, and `category` query
-parameters. Category matching is case-insensitive; supplied filters combine
-with AND and remain scoped to the current user.
+parameters plus 1-based `page` and `size` parameters. The defaults are
+`page=1` and `size=10`; `size` is capped at 50. The response has the shape
+`{ items, page, size, totalItems, totalPages }`. If a requested page is past
+the last page, the API returns the last available page. Category matching is
+case-insensitive; supplied filters combine with AND and remain scoped to the
+current user. Pinned tasks and statistics use their dedicated endpoints and
+are not limited by the current list page.
 
 Every error uses one JSON shape with `status`, `code`, `message`, `path`, and
 optional `fieldErrors`. Relevant codes include `VALIDATION_ERROR`,

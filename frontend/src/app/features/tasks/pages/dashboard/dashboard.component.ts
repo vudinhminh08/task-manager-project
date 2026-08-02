@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnInit, Optional } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { ApiError } from '../../../../core/models/api-error';
 import { AuthService } from '../../../auth/auth.service';
 import { TASK_CATEGORY_OPTIONS, taskCategoryCode, taskCategoryLabel } from '../../task-categories';
@@ -35,6 +35,7 @@ export class DashboardComponent implements OnInit {
     category: new FormControl('', { nonNullable: true }),
   });
   tasks: Task[] = [];
+  pinnedTasks: Task[] = [];
   summary: TaskSummary = { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0 };
   loading = false;
   errorMessage = '';
@@ -53,25 +54,23 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   get pagedTasks(): Task[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.tasks.slice(start, start + this.pageSize);
-  }
-
-  get pinnedTasks(): Task[] {
-    return this.tasks.filter((task) => task.pinned);
+    return this.tasks;
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.tasks.length / this.pageSize));
+    return Math.max(1, this.totalPagesValue);
   }
 
   get showPagination(): boolean {
-    return this.tasks.length > this.pageSize;
+    return this.totalPagesValue > 1;
   }
 
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, index) => index + 1);
   }
+
+  totalItems = 0;
+  private totalPagesValue = 1;
 
   get currentEmail(): string {
     return this.auth.currentUser()?.email ?? '';
@@ -126,11 +125,11 @@ export class DashboardComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.load();
+    this.load(1);
   }
   clearFilters(): void {
     this.filters.reset({ status: '', priority: '', category: '' });
-    this.load();
+    this.load(1);
   }
 
   togglePinned(): void {
@@ -138,20 +137,28 @@ export class DashboardComponent implements OnInit {
   }
 
   goToPage(page: number): void {
-    this.currentPage = Math.min(Math.max(1, page), this.totalPages);
+    const nextPage = Math.min(Math.max(1, page), this.totalPages);
+    if (nextPage === this.currentPage || this.loading) return;
+    this.load(nextPage);
   }
 
-  load(): void {
-    this.currentPage = 1;
+  load(page = this.currentPage): void {
+    this.currentPage = Math.min(Math.max(1, page), this.totalPages);
     this.loading = true;
     this.errorMessage = '';
-    this.tasksApi
-      .list(this.activeFilters())
+    forkJoin({
+      page: this.tasksApi.list(this.activeFilters(), this.currentPage, this.pageSize),
+      pinned: this.tasksApi.pinned(),
+    })
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (tasks) => {
-          this.tasks = tasks;
-          this.summary = calculateTaskSummary(tasks, this.today);
+        next: ({ page: result, pinned }) => {
+          this.tasks = result.items;
+          this.pinnedTasks = pinned;
+          this.currentPage = result.page;
+          this.totalItems = result.totalItems;
+          this.totalPagesValue = result.totalPages;
+          this.summary = calculateTaskSummary(result.items, this.today);
         },
         error: (error: HttpErrorResponse) => {
           this.errorMessage = this.errorText(error, 'Không thể tải danh sách công việc');
@@ -174,7 +181,7 @@ export class DashboardComponent implements OnInit {
         next: (updated) => {
           task.status = updated.status;
           this.toast?.success('Đã cập nhật trạng thái công việc');
-          this.load();
+          this.load(this.currentPage);
         },
         error: (error: HttpErrorResponse) => {
           task.status = previousStatus;
@@ -193,6 +200,9 @@ export class DashboardComponent implements OnInit {
       .subscribe({
         next: (updated) => {
           task.pinned = updated.pinned;
+          this.pinnedTasks = updated.pinned
+            ? [...this.pinnedTasks.filter((item) => item.id !== updated.id), updated]
+            : this.pinnedTasks.filter((item) => item.id !== updated.id);
           this.toast?.success(updated.pinned ? 'Đã ghim công việc' : 'Đã bỏ ghim công việc');
         },
         error: (error: HttpErrorResponse) => {
@@ -209,7 +219,7 @@ export class DashboardComponent implements OnInit {
       .delete(id)
       .pipe(finalize(() => (this.deletingId = null)))
       .subscribe({
-        next: () => this.load(),
+        next: () => this.load(this.currentPage),
         error: (error: HttpErrorResponse) => {
           this.errorMessage = this.errorText(error, 'Không thể xóa công việc');
         },

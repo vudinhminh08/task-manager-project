@@ -8,7 +8,7 @@ import { ToastService } from '../../../../core/toast/toast.service';
 import { Task, TaskPriority, TaskStatus } from '../../../tasks/task.models';
 import { TaskService } from '../../../tasks/task.service';
 import { taskCategoryLabel } from '../../../tasks/task-categories';
-import { calculateStatistics, getOverdueTasks, TaskStatistic } from './statistics';
+import { calculateStatisticsFromCounts, TaskStatistic } from './statistics';
 
 function localIsoDate(date = new Date()): string {
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -37,7 +37,7 @@ export class StatisticsComponent implements OnInit {
   ) {}
 
   get overdueTasks(): Task[] {
-    return getOverdueTasks(this.tasks, this.today);
+    return this.tasks;
   }
 
   get statusMetrics(): TaskStatistic[] {
@@ -73,12 +73,12 @@ export class StatisticsComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.tasksApi
-      .list()
+      .statistics()
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (tasks) => {
-          this.tasks = tasks;
-          this.metrics = calculateStatistics(tasks, this.today);
+        next: (statistics) => {
+          this.tasks = statistics.overdueTasks;
+          this.metrics = calculateStatisticsFromCounts(statistics);
         },
         error: (error: HttpErrorResponse) => {
           const apiError = error.error as Partial<ApiError> | null;

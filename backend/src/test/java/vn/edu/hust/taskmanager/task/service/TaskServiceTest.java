@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import vn.edu.hust.taskmanager.auth.model.User;
 import vn.edu.hust.taskmanager.auth.repository.UserRepository;
@@ -23,7 +25,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,11 +40,30 @@ class TaskServiceTest {
 
     @Test
     void listsUsingAuthenticatedOwnerAndNormalizedOptionalCategory() {
-        when(taskRepository.findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "WORK"))
-                .thenReturn(List.of(task(7L, user(42L), "Title", "WORK")));
-        assertThat(service.list(42L, TaskStatus.TODO, TaskPriority.HIGH, "  WORK "))
+        when(taskRepository.findFiltered(eq(42L), eq(TaskStatus.TODO), eq(TaskPriority.HIGH), eq("WORK"), any()))
+                .thenReturn(new PageImpl<>(List.of(task(7L, user(42L), "Title", "WORK")),
+                        PageRequest.of(1, 10), 11));
+        assertThat(service.list(42L, TaskStatus.TODO, TaskPriority.HIGH, "  WORK ", 2, 10)
+                .items())
                 .extracting(TaskResponse::id).containsExactly(7L);
-        verify(taskRepository).findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "WORK");
+        verify(taskRepository).findFiltered(42L, TaskStatus.TODO, TaskPriority.HIGH, "WORK", PageRequest.of(1, 10));
+    }
+
+    @Test
+    void movesToLastAvailablePageWhenRequestedPageIsOutOfRange() {
+        Task lastTask = task(7L, user(42L), "Last task", "WORK");
+        when(taskRepository.findFiltered(eq(42L), any(), any(), any(), eq(PageRequest.of(2, 10))))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(2, 10), 20));
+        when(taskRepository.findFiltered(eq(42L), any(), any(), any(), eq(PageRequest.of(1, 10))))
+                .thenReturn(new PageImpl<>(List.of(lastTask), PageRequest.of(1, 10), 20));
+
+        var response = service.list(42L, null, null, null, 3, 10);
+
+        assertThat(response.page()).isEqualTo(2);
+        assertThat(response.totalPages()).isEqualTo(2);
+        assertThat(response.items()).extracting(TaskResponse::id).containsExactly(7L);
+        verify(taskRepository, times(1)).findFiltered(42L, null, null, null, PageRequest.of(2, 10));
+        verify(taskRepository, times(1)).findFiltered(42L, null, null, null, PageRequest.of(1, 10));
     }
 
     @Test

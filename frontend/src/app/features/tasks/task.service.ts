@@ -7,6 +7,8 @@ import {
   TaskFilters,
   TaskPayload,
   TaskPinPayload,
+  TaskPage,
+  TaskStatisticsResponse,
   TaskStatus,
   TaskStatusPayload,
 } from './task.models';
@@ -17,12 +19,20 @@ export class TaskService {
 
   constructor(private readonly http: HttpClient) {}
 
-  list(filters: TaskFilters = {}): Observable<Task[]> {
-    let params = new HttpParams();
+  list(filters: TaskFilters = {}, page = 1, size = 10): Observable<TaskPage> {
+    let params = new HttpParams().set('page', page).set('size', size);
     if (filters.status) params = params.set('status', filters.status);
     if (filters.priority) params = params.set('priority', filters.priority);
     if (filters.category?.trim()) params = params.set('category', filters.category.trim());
-    return this.http.get<Task[]>(this.url, { params });
+    return this.http.get<TaskPage>(this.url, { params });
+  }
+
+  pinned(): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.url}/pinned`);
+  }
+
+  statistics(): Observable<TaskStatisticsResponse> {
+    return this.http.get<TaskStatisticsResponse>(`${this.url}/statistics`);
   }
 
   getById(id: number): Observable<Task> {

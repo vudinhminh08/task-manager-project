@@ -21,9 +21,14 @@ const todo: Task = {
 };
 const done: Task = { ...todo, id: 2, title: 'Đã xong', status: 'DONE', dueDate: null };
 
+function page(items: Task[], currentPage = 1, totalItems = items.length, totalPages = 1) {
+  return { items, page: currentPage, size: 10, totalItems, totalPages };
+}
+
 describe('Task DashboardComponent', () => {
   const service = {
     list: vi.fn(),
+    pinned: vi.fn(),
     delete: vi.fn(),
     updateStatus: vi.fn(),
     updatePinned: vi.fn(),
@@ -32,12 +37,14 @@ describe('Task DashboardComponent', () => {
 
   beforeEach(async () => {
     service.list.mockReset();
+    service.pinned.mockReset();
     service.delete.mockReset();
     service.updateStatus.mockReset();
     service.updatePinned.mockReset();
     auth.currentUser.mockReset();
     auth.logout.mockReset();
-    service.list.mockReturnValue(of([todo, done]));
+    service.list.mockReturnValue(of(page([todo, done])));
+    service.pinned.mockReturnValue(of([]));
     auth.currentUser.mockReturnValue({ id: 7, email: 'demo@example.com' });
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -53,11 +60,15 @@ describe('Task DashboardComponent', () => {
     const component = TestBed.createComponent(DashboardComponent).componentInstance;
     component.filters.setValue({ status: 'TODO', priority: 'HIGH', category: ' PERSONAL ' });
     component.applyFilters();
-    expect(service.list).toHaveBeenCalledWith({
-      status: 'TODO',
-      priority: 'HIGH',
-      category: 'PERSONAL',
-    });
+    expect(service.list).toHaveBeenCalledWith(
+      {
+        status: 'TODO',
+        priority: 'HIGH',
+        category: 'PERSONAL',
+      },
+      1,
+      10,
+    );
     expect(component.summary.total).toBe(2);
     expect(component.summary.overdue).toBe(1);
   });
@@ -94,33 +105,30 @@ describe('Task DashboardComponent', () => {
 
   it('reloads with active filters after a status change', () => {
     const taskUnderTest = { ...todo, status: 'TODO' as const };
-    service.list.mockReturnValueOnce(of([taskUnderTest])).mockReturnValueOnce(of([]));
+    service.list.mockReturnValueOnce(of(page([taskUnderTest]))).mockReturnValueOnce(of(page([])));
     service.updateStatus.mockReturnValue(of({ ...taskUnderTest, status: 'DONE' }));
     const component = TestBed.createComponent(DashboardComponent).componentInstance;
     component.filters.patchValue({ status: 'TODO' });
     component.load();
     component.updateStatus(taskUnderTest, { target: { value: 'DONE' } } as unknown as Event);
     expect(service.updateStatus).toHaveBeenCalledWith(1, 'DONE');
-    expect(service.list).toHaveBeenLastCalledWith({ status: 'TODO' });
+    expect(service.list).toHaveBeenLastCalledWith({ status: 'TODO' }, 1, 10);
     expect(component.tasks).toEqual([]);
   });
 
   it('toggles a pin and keeps pinned tasks independent from pagination', () => {
-    service.updatePinned.mockReturnValue(of({ ...todo, pinned: true }));
+    service.updatePinned.mockReturnValue(of({ ...todo, id: 2, pinned: true }));
     const component = TestBed.createComponent(DashboardComponent).componentInstance;
-    component.tasks = Array.from({ length: 21 }, (_, index) => ({
-      ...todo,
-      id: index + 1,
-      pinned: index === 0,
-    }));
+    component.tasks = [{ ...todo, id: 2, pinned: false }];
+    component.pinnedTasks = [{ ...todo, id: 1, pinned: true }];
     component.currentPage = 3;
+    component.totalItems = 21;
     expect(component.pagedTasks).toHaveLength(1);
     expect(component.pinnedTasks).toHaveLength(1);
-    component.togglePin(component.tasks[1]);
+    component.togglePin(component.tasks[0]);
     expect(service.updatePinned).toHaveBeenCalledWith(2, true);
     expect(component.pinnedTasks).toHaveLength(2);
-    component.goToPage(99);
-    expect(component.currentPage).toBe(3);
+    expect(component.totalItems).toBe(21);
   });
 
   it('navigates to a new form with a task clone draft', () => {
@@ -176,7 +184,8 @@ describe('Task DashboardComponent', () => {
 
   it('starts the important-work section collapsed on mobile and can expand it', () => {
     const innerWidth = vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(390);
-    service.list.mockReturnValue(of([{ ...todo, pinned: true }, done]));
+    service.list.mockReturnValue(of(page([{ ...todo, pinned: true }, done])));
+    service.pinned.mockReturnValue(of([{ ...todo, pinned: true }]));
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
 
@@ -224,7 +233,13 @@ describe('Task DashboardComponent', () => {
 
   it('uses visual row states for overdue, TODO, and DONE tasks without an overdue label', () => {
     service.list.mockReturnValue(
-      of([todo, { ...todo, id: 3, title: 'Đang làm', status: 'IN_PROGRESS', dueDate: null }, done]),
+      of(
+        page([
+          todo,
+          { ...todo, id: 3, title: 'Đang làm', status: 'IN_PROGRESS', dueDate: null },
+          done,
+        ]),
+      ),
     );
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
